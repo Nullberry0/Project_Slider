@@ -79,7 +79,7 @@ void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, R
 
             if(std::ranges::find(selectedElements, i) != selectedElements.end())
             {
-                Vector2 offset = (renderVars.windowSize - renderVars.appliedViewportOffset) / 2.0f + (renderVars.windowSize * renderVars.appliedViewportOffset);
+                Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + (renderVars.windowSize * renderVars.appliedViewportOffset);
 
                 element["x"] = Map(input.mousePos.x - offset.x, 0, renderVars.viewportSize.width, 0, renderVars.canvasSize.width);
                 element["y"] = Map(input.mousePos.y - offset.y, 0, renderVars.viewportSize.height, 0, renderVars.canvasSize.height);

@@ -142,7 +142,7 @@ int main() // Runs once on startup
         {
             InputState newInput = RecordEditorInput(event);
 
-            if (newInput.leftMouse != MouseState::None) {
+            if (newInput.leftMouse == MouseState::Pressed) {
                 editorInput.leftMouse = newInput.leftMouse;
             }
 
