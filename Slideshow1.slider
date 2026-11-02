@@ -1,0 +1,81 @@
+{
+    "version": 1,
+    "canvas": {
+        "width": 1920,
+        "height": 1080
+    },
+
+    "pages" :[
+        {
+            "bgColor" : [255, 0, 0],
+            "slideTransitions" : [
+                {
+                    "type" : "InterpolateBgColor",
+                    "speed" : 5
+                }
+            ],
+            "elements": [
+                {
+                    "type": "rect",
+                    "x": 960,
+                    "y": 540,
+                    "width": 800,
+                    "height": 100,
+                    "color":[255, 0, 0]
+                },
+                {
+                    "type": "rect",
+                    "x":200,
+                    "y":300,
+                    "width":200,
+                    "height":500,
+                    "color":[0, 255, 0]
+
+                },
+                {
+                    "type": "text",
+                    "content":"Hello World!",
+                    "x":960,
+                    "y":300,
+                    "fontSize":48,
+                    "color":[0, 255, 0]
+
+                }
+            ]
+        },
+        {
+            "bgColor" : [0, 0, 255],
+            "slideTransitions" : [
+                {
+                    "type" : "InterpolateBgColor",
+                    "speed" : 2
+                },
+                {
+                    "type" : "Shake",
+                    "intensity" : 5,
+                    "duration" : 0.3,
+                    "frequency" : 80
+                }
+            ],
+            "elements": [
+                {
+                    "type": "rect",
+                    "x": 1080,
+                    "y": 540,
+                    "width": 800,
+                    "height": 100,
+                    "color":[100, 100, 0]
+                },
+                {
+                    "type": "rect",
+                    "x":800,
+                    "y":300,
+                    "width":200,
+                    "height":500,
+                    "color":[255, 0, 0]
+
+                }
+            ]
+        }
+    ]
+}

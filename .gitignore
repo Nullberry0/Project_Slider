@@ -1,0 +1,10 @@
+# macOS
+.DS_Store
+
+# Compiled files
+*.o
+*.dSYM/
+slider
+
+# VS Code
+.vscode/
