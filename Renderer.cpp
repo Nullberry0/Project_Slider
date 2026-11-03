@@ -119,25 +119,24 @@ void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, Ren
 
     auto elements = jsonFile["pages"][openPageIndex]["elements"];
 
+    for(const auto &element : elements){
 
-    for(size_t i = 0; i < selectedElements.size(); i++){
+        if(std::ranges::find(selectedElements, element["id"].get<int>()) != selectedElements.end()){
+            Vector2 pos{element["x"].get<float>(), element["y"].get<float>()};
 
-        auto element = elements[selectedElements[i]];
+            Size2D size{element["width"].get<int>(), element["height"].get<int>()};
+            size += renderVars.windowSize.width / 50; //outline thickness
 
-        Vector2 pos{element["x"].get<float>(), element["y"].get<float>()};
+            size = size / renderVars.canvasSize * renderVars.viewportSize;
 
-        Size2D size{element["width"].get<int>(), element["height"].get<int>()};
-        size += renderVars.windowSize.width / 50; //outline thickness
+            pos = ((renderVars.windowSize - renderVars.viewportSize) / 2) + pos / renderVars.canvasSize * renderVars.viewportSize - (size/2);
 
-        size = size / renderVars.canvasSize * renderVars.viewportSize;
+            pos += renderVars.windowSize * renderVars.appliedViewportOffset; // offset
 
-        pos = ((renderVars.windowSize - renderVars.viewportSize) / 2) + pos / renderVars.canvasSize * renderVars.viewportSize - (size/2);
+            SDL_FRect rect = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
 
-        pos += renderVars.windowSize * renderVars.appliedViewportOffset; // offset
-
-        SDL_FRect rect = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
-
-        SDL_RenderFillRect(renderer, &rect);
+            SDL_RenderFillRect(renderer, &rect);
+        }
     }
 }
 

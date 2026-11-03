@@ -16,13 +16,9 @@ InputState RecordEditorInput(SDL_Event event){
 
     InputState answer{};
 
-    Uint32 mouseButtonsMask = SDL_GetMouseState(&answer.mousePos.x, &answer.mousePos.y); // This returns a mask of all the mouse buttons pressed, as well as get the mouse X and Y
-
     answer.leftMouse = MouseState::None; // If it isnt any of the others, it will be set to none
 
-    if((mouseButtonsMask & SDL_BUTTON_LMASK) != 0){ // If the left mouse button isnt masked out, it is being held
-        answer.leftMouse = MouseState::Holding;
-    }
+    SDL_GetMouseState(&answer.mousePos.x, &answer.mousePos.y);
 
     if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
         if(event.button.button == SDL_BUTTON_LEFT){
@@ -47,9 +43,11 @@ InputState RecordEditorInput(SDL_Event event){
     return answer;
 }
 
-void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, RenderVars renderVars, std::vector<int>& selectedElements){
+void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, RenderVars renderVars, std::vector<int>& selectedElements, std::unordered_map<uint64_t, Vector2> &selectedElementOffsets){
 
     auto& elements = jsonFile["pages"][currentPage]["elements"];
+
+    bool isHoveringSomething = false;
 
     for (size_t i = 0; i < elements.size(); i++)
     {
@@ -68,21 +66,37 @@ void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, R
 
             if(topLeftPos.x < input.mousePos.x && topLeftPos.x + size.width > input.mousePos.x && 
                 input.mousePos.y > topLeftPos.y && topLeftPos.y + size.height > input.mousePos.y){ // box collision
+                isHoveringSomething = true;
 
                 if(input.leftMouse == MouseState::Pressed){
-                    if(std::ranges::find(selectedElements, i) == selectedElements.end()){
-                        selectedElements.push_back(i);  // The elements index is NOT being selected
+                    if(std::ranges::find(selectedElements, element["id"].get<int>()) == selectedElements.end()){ // checks if it isnt already selected
+
+                        selectedElements.push_back(element["id"].get<int>());
                     } 
-                    else std::erase(selectedElements, i); //If you click the element and it is already selected
+                    Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + (renderVars.windowSize * renderVars.appliedViewportOffset);
+
+                    Vector2 canvasMousePos{ Map(input.mousePos.x - offset.x, 0, renderVars.viewportSize.width, 0, renderVars.canvasSize.width),  
+                        Map(input.mousePos.y - offset.y, 0, renderVars.viewportSize.height, 0, renderVars.canvasSize.height)};
+
+                    selectedElementOffsets[element["id"].get<int>()] = Vector2{element["x"].get<float>(), element["y"].get<float>()} - canvasMousePos;
+                }
+            }
+            else{
+                if(input.leftMouse == MouseState::Pressed){
+                    if(isHoveringSomething == false){
+                         selectedElements = {};
+                    }
+                    else std::erase(selectedElements, element["id"].get<int>());
+                    
                 }
             }
 
-            if(std::ranges::find(selectedElements, i) != selectedElements.end())
+            if(std::ranges::find(selectedElements, element["id"].get<int>()) != selectedElements.end() && input.leftMouse == MouseState::Holding)
             {
                 Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + (renderVars.windowSize * renderVars.appliedViewportOffset);
 
-                element["x"] = Map(input.mousePos.x - offset.x, 0, renderVars.viewportSize.width, 0, renderVars.canvasSize.width);
-                element["y"] = Map(input.mousePos.y - offset.y, 0, renderVars.viewportSize.height, 0, renderVars.canvasSize.height);
+                element["x"] = Map(input.mousePos.x - offset.x, 0, renderVars.viewportSize.width, 0, renderVars.canvasSize.width) + selectedElementOffsets[element["id"].get<int>()].x;
+                element["y"] = Map(input.mousePos.y - offset.y, 0, renderVars.viewportSize.height, 0, renderVars.canvasSize.height) + selectedElementOffsets[element["id"].get<int>()].y;
             }     
         }
     }

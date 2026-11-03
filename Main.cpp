@@ -75,7 +75,9 @@ int main() // Runs once on startup
             appliedViewportOffset,
             canvasScaleFactor
         };
-    };
+    }; 
+
+   std::unordered_map<uint64_t, Vector2> selectedElementOffsets{{}}; // the offset between the middle of the object and the cursor when it is first selected
 
     int pageIndex = 0;
 
@@ -109,7 +111,6 @@ int main() // Runs once on startup
 
     float lastTime = SDL_GetTicks();
 
-
     // SDL STARTUP
 
     SDL_Window* root;
@@ -142,7 +143,7 @@ int main() // Runs once on startup
         {
             InputState newInput = RecordEditorInput(event);
 
-            if (newInput.leftMouse == MouseState::Pressed) {
+            if (newInput.leftMouse == MouseState::Pressed || newInput.leftMouse == MouseState::Released) {
                 editorInput.leftMouse = newInput.leftMouse;
             }
 
@@ -168,7 +169,27 @@ int main() // Runs once on startup
             }
         }
 
-        UpdateEditor(memoryJson, pageIndex, editorInput, renderVars, selectedElements);
+        if (editorInput.leftMouse == MouseState::None) {
+            Uint32 buttons = SDL_GetMouseState(nullptr, nullptr);
+            if (buttons & SDL_BUTTON_LMASK) {  // If the left mouse button isnt masked out, it is being held
+                editorInput.leftMouse = MouseState::Holding;
+            }
+        }
+
+        // if(editorInput.leftMouse == MouseState::Pressed){
+        //     cout << "yes" << endl;
+        // }
+        // else cout << "no" << endl;
+
+        //cout << editorInput.mousePos.x << endl;
+
+        UpdateEditor(memoryJson, pageIndex, editorInput, renderVars, selectedElements, selectedElementOffsets);
+    
+        // for(const int &element : selectedElements){
+        //     cout << element << endl;
+        // }
+
+        //cout << renderVars.viewportSize.width << endl;
 
         if(bgColorInterpolateSpeed > -0.5f){ // the interpolate speed is -1 when target == current
             int sameColorsCounter = 0;
@@ -192,7 +213,6 @@ int main() // Runs once on startup
             screenShakeTimer -= deltaTime;
             float t = screenShakeTimer / screenShakeDuration;
             float elapsed = screenShakeDuration - screenShakeTimer;
-            cout << "this" << endl;
             t = t * t * t;
             additionalViewportOffset = {originalScreenShakeIntensity.x * t * sin(elapsed * screenShakeFrequency), 
                 originalScreenShakeIntensity.y * t * cos(elapsed * screenShakeFrequency)};
@@ -280,17 +300,19 @@ void UpdateRenderVars(RenderVars &renderVars, const Vector2 editingViewportOffse
     SDL_GetWindowSize(root, &renderVars.windowSize.width, &renderVars.windowSize.height);
     
     renderVars.canvasScaleFactor = Min(static_cast<float>(renderVars.windowSize.width) / renderVars.canvasSize.width, static_cast<float>(renderVars.windowSize.height) / renderVars.canvasSize.height);
-
-    renderVars.viewportSize = renderVars.canvasSize * renderVars.canvasScaleFactor;
+    //cout << renderVars.canvasScaleFactor << endl;
 
     if(isEditing){
         renderVars.viewportSize *= 0.8;
+        renderVars.canvasScaleFactor *= 0.8;
 
         renderVars.appliedViewportOffset = editingViewportOffset;
     }
     else{
         renderVars.appliedViewportOffset = {0, 0};
     }
+
+    renderVars.viewportSize = renderVars.canvasSize * renderVars.canvasScaleFactor;
 
     renderVars.appliedViewportOffset += additionalViewportOffset;
 }
