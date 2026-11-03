@@ -183,7 +183,7 @@ int main() // Runs once on startup
 
         //cout << editorInput.mousePos.x << endl;
 
-        UpdateEditor(memoryJson, pageIndex, editorInput, renderVars, selectedElements, selectedElementOffsets);
+        if(isEditing) UpdateEditor(memoryJson, pageIndex, editorInput, renderVars, selectedElements, selectedElementOffsets);
     
         // for(const int &element : selectedElements){
         //     cout << element << endl;
