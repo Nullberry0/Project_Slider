@@ -113,15 +113,16 @@ void RenderViewRect(SDL_Renderer* renderer, RenderVars renderVars, Color bgColor
     SDL_RenderRect(renderer, &rect);
 }
 
-void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, RenderVars renderVars, vector<int> selectedElements){
+void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, RenderVars renderVars, std::unordered_map<uint64_t, Vector2> selectedElementOffsets){
 
     SDL_SetRenderDrawColor(renderer, 23, 82, 112, 255);
 
     auto elements = jsonFile["pages"][openPageIndex]["elements"];
 
-    for(const auto &element : elements){
-
-        if(std::ranges::find(selectedElements, element["id"].get<int>()) != selectedElements.end()){
+    for( const auto &element : elements){
+        
+        int id = element["id"].get<int>();
+        if(selectedElementOffsets.contains(id)){
             Vector2 pos{element["x"].get<float>(), element["y"].get<float>()};
 
             Size2D size{element["width"].get<int>(), element["height"].get<int>()};

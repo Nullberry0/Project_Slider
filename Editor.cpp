@@ -43,7 +43,7 @@ InputState RecordEditorInput(SDL_Event event){
     return answer;
 }
 
-void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, RenderVars renderVars, std::vector<int>& selectedElements, std::unordered_map<uint64_t, Vector2> &selectedElementOffsets){
+void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, RenderVars renderVars, std::unordered_map<uint64_t, Vector2> &selectedElementOffsets){
 
     auto& elements = jsonFile["pages"][currentPage]["elements"];
 
@@ -69,10 +69,6 @@ void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, R
                 isHoveringSomething = true;
 
                 if(input.leftMouse == MouseState::Pressed){
-                    if(std::ranges::find(selectedElements, element["id"].get<int>()) == selectedElements.end()){ // checks if it isnt already selected
-
-                        selectedElements.push_back(element["id"].get<int>());
-                    } 
                     Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + (renderVars.windowSize * renderVars.appliedViewportOffset);
 
                     Vector2 canvasMousePos{ Map(input.mousePos.x - offset.x, 0, renderVars.viewportSize.width, 0, renderVars.canvasSize.width),  
@@ -84,14 +80,14 @@ void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, R
             else{
                 if(input.leftMouse == MouseState::Pressed){
                     if(isHoveringSomething == false){
-                         selectedElements = {};
+                        selectedElementOffsets = {};
                     }
-                    else std::erase(selectedElements, element["id"].get<int>());
+                    else selectedElementOffsets.erase(element["id"].get<int>());
                     
                 }
             }
 
-            if(std::ranges::find(selectedElements, element["id"].get<int>()) != selectedElements.end() && input.leftMouse == MouseState::Holding)
+            if(selectedElementOffsets.contains(element["id"].get<int>()) && input.leftMouse == MouseState::Holding) // change the elements position if it is being held
             {
                 Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + (renderVars.windowSize * renderVars.appliedViewportOffset);
 

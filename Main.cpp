@@ -77,14 +77,14 @@ int main() // Runs once on startup
         };
     }; 
 
-   std::unordered_map<uint64_t, Vector2> selectedElementOffsets{{}}; // the offset between the middle of the object and the cursor when it is first selected
+    std::unordered_map<uint64_t, Vector2> selectedElementOffsets{}; // the offset between the middle of the object and the cursor when it is first selected
 
     int pageIndex = 0;
 
     int lastPageIndex = pageIndex;
 
     bool isEditing = true;
-
+ 
     //        the applied offset is in the renderVars scruct
 
     const Vector2 editingViewportOffset{0.1, 0.1};
@@ -100,8 +100,6 @@ int main() // Runs once on startup
     int pageCount = GetPageCount(memoryJson);
 
     float deltaTime = 0;
-
-    vector<int> selectedElements = {};
 
     Color currentBgColor{0, 0, 0, 255};
     Color targetBgColor{};
@@ -176,20 +174,12 @@ int main() // Runs once on startup
             }
         }
 
-        // if(editorInput.leftMouse == MouseState::Pressed){
-        //     cout << "yes" << endl;
-        // }
-        // else cout << "no" << endl;
-
-        //cout << editorInput.mousePos.x << endl;
-
-        if(isEditing) UpdateEditor(memoryJson, pageIndex, editorInput, renderVars, selectedElements, selectedElementOffsets);
-    
-        // for(const int &element : selectedElements){
-        //     cout << element << endl;
+        // for(const auto &[id, offset] : selectedElementOffsets){
+        //     cout << id << endl;
         // }
 
-        //cout << renderVars.viewportSize.width << endl;
+        if(isEditing) UpdateEditor(memoryJson, pageIndex, editorInput, renderVars, selectedElementOffsets);
+
 
         if(bgColorInterpolateSpeed > -0.5f){ // the interpolate speed is -1 when target == current
             int sameColorsCounter = 0;
@@ -228,7 +218,7 @@ int main() // Runs once on startup
 
         RenderViewRect(renderer, renderVars, currentBgColor);
 
-        if(isEditing) RenderOutline(renderer, pageIndex, memoryJson, renderVars, selectedElements);
+        if(isEditing) RenderOutline(renderer, pageIndex, memoryJson, renderVars, selectedElementOffsets);
 
         RenderFile(memoryJson, pageIndex, renderer, renderVars);
 

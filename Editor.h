@@ -25,6 +25,6 @@ struct InputState {
 
 InputState RecordEditorInput(SDL_Event event);
 
-void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, RenderVars renderVars, std::vector<int>& selectedElements, std::unordered_map<uint64_t, Vector2> &selectedElementOffsets);
+void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, RenderVars renderVars, std::unordered_map<uint64_t, Vector2> &selectedElementOffsets);
 
 float Map(float value, float inputStart, float inputEnd, float outputStart, float outputEnd);

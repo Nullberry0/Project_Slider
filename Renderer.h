@@ -196,4 +196,4 @@ float Min(float value1, float value2);
 
 int GetPageCount(const nlohmann::json jsonFile);
 
-void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, RenderVars renderVars, vector<int> selectedElements);
+void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, RenderVars renderVars, std::unordered_map<uint64_t, Vector2> selectedElementOffsets);
