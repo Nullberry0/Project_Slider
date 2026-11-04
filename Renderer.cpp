@@ -55,7 +55,7 @@ void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, 
             TTF_Font* font = TTF_OpenFont("font.ttf", element["fontSize"].get<int>() * renderVars.canvasScaleFactor);
 
             if (!font) {
-                cerr << "Yeah the font wouldn't load " << SDL_GetError() << endl;
+                cerr << "Yeah the font wouldn't load in the renderer" << SDL_GetError() << endl;
                 continue;
             }
 
@@ -120,23 +120,24 @@ void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, Ren
     auto elements = jsonFile["pages"][openPageIndex]["elements"];
 
     for( const auto &element : elements){
-        
-        int id = element["id"].get<int>();
-        if(selectedElementOffsets.contains(id)){
-            Vector2 pos{element["x"].get<float>(), element["y"].get<float>()};
+        if(element["type"] == "rect"){
+            int id = element["id"].get<int>();
+            if(selectedElementOffsets.contains(id)){
+                Vector2 pos{element["x"].get<float>(), element["y"].get<float>()};
 
-            Size2D size{element["width"].get<int>(), element["height"].get<int>()};
-            size += renderVars.windowSize.width / 50; //outline thickness
+                Size2D size{element["width"].get<int>(), element["height"].get<int>()};
+                size += renderVars.windowSize.width / 50; //outline thickness
 
-            size = size / renderVars.canvasSize * renderVars.viewportSize;
+                size = size / renderVars.canvasSize * renderVars.viewportSize;
 
-            pos = ((renderVars.windowSize - renderVars.viewportSize) / 2) + pos / renderVars.canvasSize * renderVars.viewportSize - (size/2);
+                pos = ((renderVars.windowSize - renderVars.viewportSize) / 2) + pos / renderVars.canvasSize * renderVars.viewportSize - (size/2);
 
-            pos += renderVars.windowSize * renderVars.appliedViewportOffset; // offset
+                pos += renderVars.windowSize * renderVars.appliedViewportOffset; // offset
 
-            SDL_FRect rect = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
+                SDL_FRect rect = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
 
-            SDL_RenderFillRect(renderer, &rect);
+                SDL_RenderFillRect(renderer, &rect);
+            }
         }
     }
 }

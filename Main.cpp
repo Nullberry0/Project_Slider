@@ -178,9 +178,6 @@ int main() // Runs once on startup
         //     cout << id << endl;
         // }
 
-        if(isEditing) UpdateEditor(memoryJson, pageIndex, editorInput, renderVars, selectedElementOffsets);
-
-
         if(bgColorInterpolateSpeed > -0.5f){ // the interpolate speed is -1 when target == current
             int sameColorsCounter = 0;
             for(int i = 0; i < 3; i++){ // Cycle through the R G and B values of current color
@@ -212,6 +209,8 @@ int main() // Runs once on startup
         }
         
         UpdateRenderVars(renderVars, editingViewportOffset, isEditing, additionalViewportOffset, root);
+
+        if(isEditing) UpdateEditor(memoryJson, pageIndex, editorInput, renderVars, selectedElementOffsets);
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
