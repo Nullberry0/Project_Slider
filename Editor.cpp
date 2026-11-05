@@ -57,13 +57,10 @@ void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, R
         if(element["type"] == "rect")
         {
             Size2D size{element["width"].get<int>(), element["height"].get<int>()};
-            size = size / renderVars.canvasSize * renderVars.viewportSize;
 
             Vector2 topLeftPos{element["x"].get<float>(), element["y"].get<float>()};
 
-            topLeftPos = ((renderVars.windowSize - renderVars.viewportSize)/2) + topLeftPos / renderVars.canvasSize * renderVars.viewportSize;
-
-            topLeftPos += renderVars.windowSize * renderVars.appliedViewportOffset - (size / 2); // offset
+            ConvertCanvasToScreen(size, topLeftPos, renderVars, true);
 
             if(topLeftPos.x < input.mousePos.x && topLeftPos.x + size.width > input.mousePos.x && 
                 input.mousePos.y > topLeftPos.y && topLeftPos.y + size.height > input.mousePos.y){ // box collision
@@ -105,9 +102,7 @@ void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, R
 
             Vector2 topLeftPos{element["x"].get<float>(), element["y"].get<float>()};
 
-            topLeftPos = ((renderVars.windowSize - renderVars.viewportSize)/2) + topLeftPos / renderVars.canvasSize * renderVars.viewportSize;
-
-            topLeftPos += renderVars.windowSize * renderVars.appliedViewportOffset - (size / 2); // offset
+            ConvertCanvasToScreen(size, topLeftPos, renderVars, false);
 
             if(topLeftPos.x < input.mousePos.x && topLeftPos.x + size.width > input.mousePos.x && 
                 input.mousePos.y > topLeftPos.y && topLeftPos.y + size.height > input.mousePos.y){ // box collision

@@ -28,10 +28,11 @@ struct Vector2 {
         return *this;
     }
 
-    // Operators involving Size2D are declared here
+    // overloads that need size2D the prototypes are here
     Vector2 operator/(const Size2D& other) const;
     Vector2 operator-(const Size2D& other) const;
     Vector2 operator*(const Size2D& other) const;
+    Vector2& operator-=(const Size2D& other);
 
     Vector2 operator/(float divider) const {
         return {x / divider, y / divider};
@@ -129,6 +130,11 @@ struct Size2D {
         height = static_cast<int>(other.y);
         return *this;
     }
+    Size2D& operator-=(const Size2D& other) {
+        width -= other.width;
+        height -= other.height;
+        return *this;
+    }
 };
 
 
@@ -153,6 +159,12 @@ inline Vector2 Vector2::operator*(const Size2D& other) const {
         x * other.width,
         y * other.height
     };
+}
+
+inline Vector2& Vector2::operator-=(const Size2D& other) {
+    x -= other.width;
+    y -= other.height;
+    return *this;
 }
 
 
@@ -197,3 +209,4 @@ float Min(float value1, float value2);
 int GetPageCount(const nlohmann::json jsonFile);
 
 void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, RenderVars renderVars, std::unordered_map<uint64_t, Vector2> selectedElementOffsets);
+void ConvertCanvasToScreen(Size2D &size, Vector2 &pos, const RenderVars renderVars, const bool changeSize);

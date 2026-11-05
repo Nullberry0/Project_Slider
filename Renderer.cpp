@@ -32,10 +32,8 @@ void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, 
         if(type == "rect")
         {
             Size2D size{element["width"].get<int>(), element["height"].get<int>()};
-            size = size / renderVars.canvasSize * renderVars.viewportSize;
 
-            pos = ((renderVars.windowSize - renderVars.viewportSize)/2) + pos / renderVars.canvasSize * renderVars.viewportSize - (size /2); //The part in the beginning is so that the middle is relative to the view rect
-            pos += renderVars.windowSize * renderVars.appliedViewportOffset; // Offset
+            ConvertCanvasToScreen(size, pos, renderVars, true);       
 
             auto c = element["color"];
             Color color = {c[0].get<uint8_t>(), c[1].get<uint8_t>(), c[2].get<uint8_t>(), 255};
@@ -82,8 +80,7 @@ void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, 
 
                     // size does not need adjusting because the font is already changed on the font initialize line
 
-                    pos = ((renderVars.windowSize - renderVars.viewportSize)/2) + pos / renderVars.canvasSize * renderVars.viewportSize - (size /2); //The part in the beginning is so that the middle is relative to the view rect
-                    pos += renderVars.windowSize * renderVars.appliedViewportOffset; // Offset
+                    ConvertCanvasToScreen(size, pos, renderVars, false);
 
                     SDL_FRect destination = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
 
@@ -123,16 +120,13 @@ void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, Ren
         if(element["type"] == "rect"){
             int id = element["id"].get<int>();
             if(selectedElementOffsets.contains(id)){
+
                 Vector2 pos{element["x"].get<float>(), element["y"].get<float>()};
 
                 Size2D size{element["width"].get<int>(), element["height"].get<int>()};
                 size += renderVars.windowSize.width / 50; //outline thickness
 
-                size = size / renderVars.canvasSize * renderVars.viewportSize;
-
-                pos = ((renderVars.windowSize - renderVars.viewportSize) / 2) + pos / renderVars.canvasSize * renderVars.viewportSize - (size/2);
-
-                pos += renderVars.windowSize * renderVars.appliedViewportOffset; // offset
+                ConvertCanvasToScreen(size, pos, renderVars, true);
 
                 SDL_FRect rect = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
 
@@ -156,3 +150,9 @@ int GetPageCount(const json jsonFile){
     return jsonFile["pages"].size();
 }
 
+void ConvertCanvasToScreen(Size2D &size, Vector2 &pos, const RenderVars renderVars, const bool changeSize){
+    if(changeSize) size = size / renderVars.canvasSize * renderVars.viewportSize;
+
+    pos = ((renderVars.windowSize - renderVars.viewportSize)/2) + pos / renderVars.canvasSize * renderVars.viewportSize - (size /2); //The part in the beginning is so that the middle is relative to the view rect
+    pos += renderVars.windowSize * renderVars.appliedViewportOffset; // Offset
+}
