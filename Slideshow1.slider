@@ -11,7 +11,7 @@
             "slideTransitions" : [
                 {
                     "type" : "InterpolateBgColor",
-                    "speed" : 5
+                    "speed" : 2
                 }
             ],
             "elements": [
@@ -79,6 +79,15 @@
                     "height":500,
                     "color":[255, 0, 0]
 
+                },                
+                {
+                    "id" : 7,
+                    "type": "image",
+                    "src" : "SlideshowFiles/Image.png",
+                    "x":960,
+                    "y":700,
+                    "width":500,
+                    "height":500
                 }
             ]
         }

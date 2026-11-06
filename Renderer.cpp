@@ -4,6 +4,7 @@
 #include <nlohmann/json.hpp> // Run json files
 #include <array> // For arrays
 #include <SDL3_ttf/SDL_ttf.h> // Text render engine
+#include <SDL3_image/SDL_image.h>
 
 #include "Renderer.h"
 
@@ -57,12 +58,7 @@ void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, 
                 continue;
             }
 
-            SDL_Color textColor = {
-                (Uint8)color[0],
-                (Uint8)color[1],
-                (Uint8)color[2],
-                255
-            };
+            SDL_Color textColor = {color[0], color[1], color[2], 255};
 
             SDL_Surface* surface = TTF_RenderText_Blended( // This function renders the wanted text onto a surface
                 font,
@@ -95,6 +91,17 @@ void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, 
 
             TTF_CloseFont(font);
         }
+        else if(type == "image"){
+            SDL_Texture* imageTexture = IMG_LoadTexture(renderer, element["src"].get<string>().c_str());
+
+            Size2D size{element["width"].get<int>(), element["height"].get<int>()};
+            ConvertCanvasToScreen(size, pos, renderVars, true);
+
+            SDL_FRect destination = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
+
+            SDL_RenderTexture(renderer, imageTexture, nullptr, &destination);
+            SDL_DestroyTexture(imageTexture);
+}
     }
 }
 

@@ -1,7 +1,7 @@
 CXX = clang++
 CXXFLAGS = -std=c++20 -Wall -Wextra
 
-SDL_FLAGS = $(shell pkg-config --cflags --libs sdl3 sdl3-ttf)
+SDL_FLAGS = $(shell pkg-config --cflags --libs sdl3 sdl3-ttf sdl3-image)
 JSON_FLAGS = -I$(shell brew --prefix nlohmann-json)/include
 
 TARGET = slider
