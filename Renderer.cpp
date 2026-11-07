@@ -16,10 +16,12 @@ using std::pair;
 using std::ifstream;
 using std::array;
 using std::vector;
+using std::unordered_map;
 
 using json = nlohmann::json;
 
-void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, RenderVars renderVars){
+
+void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, RenderVars renderVars, unordered_map<string, unordered_map<int, TTF_Font*>> &fonts){
 
     auto elements = jsonFile["pages"][openPageIndex]["elements"];
 
@@ -51,7 +53,27 @@ void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, 
             auto c = element["color"];
             Color color = {c[0].get<uint8_t>(), c[1].get<uint8_t>(), c[2].get<uint8_t>(), 255};
 
-            TTF_Font* font = TTF_OpenFont("font.ttf", element["fontSize"].get<int>() * renderVars.canvasScaleFactor);
+            auto fontIt = fonts.find(element["fontSrc"].get<string>());
+
+            int fontSize = static_cast<int>(element["fontSize"].get<float>() * renderVars.canvasScaleFactor);
+
+            TTF_Font* font;
+
+            if (fontIt != fonts.end()) {
+                auto sizeIt = fontIt->second.find(fontSize);
+
+                if (sizeIt != fontIt->second.end()) { // if the font size exists
+                    font = sizeIt->second;
+                }
+                else{
+                    font = TTF_OpenFont(element["fontSrc"].get<string>().c_str(), fontSize);
+                    fonts[element["fontSrc"].get<string>().c_str()][fontSize] = font;
+                }
+            } 
+            else{
+                font = TTF_OpenFont(element["fontSrc"].get<string>().c_str(), fontSize);
+                fonts[element["fontSrc"].get<string>().c_str()][fontSize] = font;
+            }
 
             if (!font) {
                 cerr << "Yeah the font wouldn't load in the renderer" << SDL_GetError() << endl;
@@ -86,10 +108,7 @@ void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, 
                 }
 
                 SDL_DestroySurface(surface);
-
             }
-
-            TTF_CloseFont(font);
         }
         else if(type == "image"){
             SDL_Texture* imageTexture = IMG_LoadTexture(renderer, element["src"].get<string>().c_str());
@@ -101,7 +120,7 @@ void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, 
 
             SDL_RenderTexture(renderer, imageTexture, nullptr, &destination);
             SDL_DestroyTexture(imageTexture);
-}
+        }
     }
 }
 

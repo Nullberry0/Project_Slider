@@ -5,6 +5,8 @@
 
 using json = nlohmann::json;
 using std::vector;
+using std::unordered_map;
+using std::string;
 
 struct Size2D; 
 
@@ -199,7 +201,7 @@ struct RenderVars
 
 
 
-void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, RenderVars renderVars);
+void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, RenderVars renderVars, unordered_map<string, unordered_map<int, TTF_Font*>> &fonts);
 
 void RenderViewRect(SDL_Renderer* renderer, RenderVars renderVars, Color bgColor);
 

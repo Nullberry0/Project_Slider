@@ -37,10 +37,11 @@
                 {
                     "id" : 3,
                     "type": "text",
-                    "content":"Hello World!*®",
+                    "content":"Apple",
                     "x":960,
                     "y":300,
                     "fontSize":86,
+                    "fontSrc" : "SlideshowFiles/Fonts/font2.ttf",
                     "color":[0, 255, 0]
 
                 }

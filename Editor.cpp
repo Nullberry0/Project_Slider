@@ -13,6 +13,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::string;
+using std::unordered_map;
 
 // A Struct declared in Editor.h
 
@@ -47,7 +48,7 @@ InputState RecordEditorInput(SDL_Event event){
     return answer;
 }
 
-void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, RenderVars renderVars, std::unordered_map<uint64_t, Vector2> &selectedElementOffsets){
+void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, RenderVars renderVars, std::unordered_map<uint64_t, Vector2> &selectedElementOffsets, unordered_map<string, unordered_map<int, TTF_Font*>> &fonts){
 
     auto& elements = jsonFile["pages"][currentPage]["elements"];
 
@@ -92,10 +93,31 @@ void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, R
         }
         else if(element["type"] == "text"){
             Size2D size{0,0};
-            TTF_Font* font = TTF_OpenFont("font.ttf", static_cast<int>(element["fontSize"].get<float>() * renderVars.canvasScaleFactor));
+
+            auto fontIt = fonts.find(element["fontSrc"].get<string>());
+
+            int fontSize = static_cast<int>(element["fontSize"].get<float>() * renderVars.canvasScaleFactor);
+
+            TTF_Font* font;
+
+            if (fontIt != fonts.end()) {
+                auto sizeIt = fontIt->second.find(fontSize);
+
+                if (sizeIt != fontIt->second.end()) { // if the font size exists
+                    font = sizeIt->second;
+                }
+                else{
+                    font = TTF_OpenFont(element["fontSrc"].get<string>().c_str(), fontSize);
+                    fonts[element["fontSrc"].get<string>().c_str()][fontSize] = font;
+                }
+            } 
+            else{
+                font = TTF_OpenFont(element["fontSrc"].get<string>().c_str(), fontSize);
+                fonts[element["fontSrc"].get<string>().c_str()][fontSize] = font;
+            }
 
             if (!font) {
-                cerr << "Yeah the font wouldn't load in the renderer" << SDL_GetError() << endl;
+                cerr << "Yeah the font wouldn't load in the Editor" << SDL_GetError() << endl;
                 continue;
             }
 
@@ -130,9 +152,9 @@ void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, R
                 element["x"] = Map(input.mousePos.x - offset.x, 0, renderVars.viewportSize.width, 0, renderVars.canvasSize.width) + selectedElementOffsets[element["id"].get<int>()].x;
                 element["y"] = Map(input.mousePos.y - offset.y, 0, renderVars.viewportSize.height, 0, renderVars.canvasSize.height) + selectedElementOffsets[element["id"].get<int>()].y;
             }     
-            TTF_CloseFont(font);
         }
     }
+
 }
 
 float Map(float value, float inputStart, float inputEnd, float outputStart, float outputEnd){

@@ -21,6 +21,7 @@ using std::array;
 using std::vector;
 using std::sin;
 using std::cos;
+using std::unordered_map;
 
 using json = nlohmann::json;
 
@@ -41,72 +42,68 @@ Size2D GetCanvasSize(const json memoryJson);
 
 std::mt19937 generator(std::random_device{}()); // Initialize random seed gen
 
+// FILE DECLARATION
+
+string openFile = "Slideshow1.slider";
+
+ifstream file(openFile);
+
+json memoryJson = json::parse(file); // A copy of the json file which can be modified without changing the underlying file
+
+// VARIABLE DECLARATION
+
+Size2D windowSize{1280, 720}; 
+
+Size2D canvasSize = GetCanvasSize(memoryJson);
+
+float canvasScaleFactor = Min(windowSize.width / canvasSize.width, windowSize.height / canvasSize.height);
+
+Size2D viewportSize{static_cast<int>(canvasSize.width * canvasScaleFactor), static_cast<int>(canvasSize.height * canvasScaleFactor)};
+
+Vector2 appliedViewportOffset{0, 0}; // A 1 meaning 100% shifted out the screen
+
+RenderVars renderVars{
+    windowSize,
+    canvasSize,
+    viewportSize,
+    appliedViewportOffset,
+    canvasScaleFactor
+};
+
+unordered_map<uint64_t, Vector2> selectedElementOffsets{}; // the offset between the middle of the object and the cursor when it is first selected
+unordered_map<string, unordered_map<int, TTF_Font*>> fonts; // font are cashed so that you don't have to remake the font every time you want to use it. This is better for preformance
+
+int pageIndex = 0;
+
+int lastPageIndex = pageIndex;
+
+bool isEditing = true;
+
+//        the applied offset is in the renderVars scruct
+
+const Vector2 editingViewportOffset{0.1, 0.1};
+Vector2 additionalViewportOffset{0, 0}; // This is for screen shake effects
+
+Vector2 originalScreenShakeIntensity{0, 0};
+
+float screenShakeFrequency = 0; // determines how many times the shake ossolates in a given period of time
+
+float screenShakeTimer = 0;
+float screenShakeDuration = 0;
+
+int pageCount = GetPageCount(memoryJson);
+
+float deltaTime = 0;
+
+Color currentBgColor{0, 0, 0, 255};
+Color targetBgColor{};
+float bgColorInterpolateSpeed; // This will be set to a different value pased on the transition parameters
+
+InputState editorInput{};
+
 
 int main() // Runs once on startup
 {
-    // FILE DECLARATION
-
-    string openFile = "Slideshow1.slider";
-
-    ifstream file(openFile);
-
-    json memoryJson = json::parse(file); // A copy of the json file which can be modified without changing the underlying file
-
-    // VARIABLE DECLARATION
-
-    RenderVars renderVars{};
-
-    { // The brackets are so that these temporary variables die
-
-        Size2D windowSize{1280, 720}; 
-
-        Size2D canvasSize = GetCanvasSize(memoryJson);
-
-        float canvasScaleFactor = Min(windowSize.width / canvasSize.width, windowSize.height / canvasSize.height);
-
-        Size2D viewportSize{static_cast<int>(canvasSize.width * canvasScaleFactor), static_cast<int>(canvasSize.height * canvasScaleFactor)};
-
-        Vector2 appliedViewportOffset{0, 0}; // A 1 meaning 100% shifted out the screen
-
-        renderVars = {
-            windowSize,
-            canvasSize,
-            viewportSize,
-            appliedViewportOffset,
-            canvasScaleFactor
-        };
-    }; 
-
-    std::unordered_map<uint64_t, Vector2> selectedElementOffsets{}; // the offset between the middle of the object and the cursor when it is first selected
-
-    int pageIndex = 0;
-
-    int lastPageIndex = pageIndex;
-
-    bool isEditing = true;
- 
-    //        the applied offset is in the renderVars scruct
-
-    const Vector2 editingViewportOffset{0.1, 0.1};
-    Vector2 additionalViewportOffset{0, 0}; // This is for screen shake effects
-
-    Vector2 originalScreenShakeIntensity{0, 0};
-
-    float screenShakeFrequency = 0; // determines how many times the shake ossolates in a given period of time
-
-    float screenShakeTimer = 0;
-    float screenShakeDuration = 0;
-
-    int pageCount = GetPageCount(memoryJson);
-
-    float deltaTime = 0;
-
-    Color currentBgColor{0, 0, 0, 255};
-    Color targetBgColor{};
-    float bgColorInterpolateSpeed; // This will be set to a different value pased on the transition parameters
-
-    InputState editorInput{};
-
     float lastTime = SDL_GetTicks();
 
     // SDL STARTUP
@@ -126,7 +123,7 @@ int main() // Runs once on startup
     SDL_Event event;
 
     StartTransitions(memoryJson["pages"][pageIndex], currentBgColor, targetBgColor, bgColorInterpolateSpeed, screenShakeTimer, additionalViewportOffset, 
-            screenShakeDuration, originalScreenShakeIntensity, screenShakeFrequency);
+            screenShakeDuration, originalScreenShakeIntensity, screenShakeFrequency);  
 
     while (running)
     {
@@ -210,7 +207,7 @@ int main() // Runs once on startup
         
         UpdateRenderVars(renderVars, editingViewportOffset, isEditing, additionalViewportOffset, root);
 
-        if(isEditing) UpdateEditor(memoryJson, pageIndex, editorInput, renderVars, selectedElementOffsets);
+        if(isEditing) UpdateEditor(memoryJson, pageIndex, editorInput, renderVars, selectedElementOffsets, fonts);
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
@@ -219,12 +216,20 @@ int main() // Runs once on startup
 
         if(isEditing) RenderOutline(renderer, pageIndex, memoryJson, renderVars, selectedElementOffsets);
 
-        RenderFile(memoryJson, pageIndex, renderer, renderVars);
+        RenderFile(memoryJson, pageIndex, renderer, renderVars, fonts);
 
         SDL_RenderPresent(renderer);
 
         SDL_Delay(16);
     }
+
+    for (auto& [fontSrc, sizes] : fonts) {
+        for (auto& [fontSize, font] : sizes) {
+            TTF_CloseFont(font);
+        }
+    }
+
+    fonts.clear();
 
     SDL_DestroyWindow(root);
     TTF_Quit();
