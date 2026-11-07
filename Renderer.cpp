@@ -7,6 +7,7 @@
 #include <SDL3_image/SDL_image.h>
 
 #include "Renderer.h"
+#include "UI.h"
 
 using std::cerr;
 using std::cout;
@@ -160,6 +161,10 @@ void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, Ren
             }
         }
     }
+}
+
+void RenderMenu(SDL_Renderer* renderer, RenderVars renderVars, MenuState menuState){
+    // YES IT IS DOING NOTHING!
 }
 
 void Clamp(int& value, int min, int max){

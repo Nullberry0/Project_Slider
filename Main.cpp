@@ -9,8 +9,9 @@
 #include <random> // I mean I think even I can understand what this one does; it is used for screenshake
 #include <stdexcept> // For different error messages like out of range
 
-#include "Renderer.h" // The renderer header file
+#include "Types.h"
 #include "Editor.h" // The editor header file
+#include "UI.h"
 
 using std::cout;
 using std::cerr;
@@ -36,70 +37,72 @@ bool InitializeRenderer(SDL_Renderer*& renderer, SDL_Window* window);
 void StartTransitions(const json jsonFileCurrentPage, Color &currentBgColor, Color &targetBgColor, float &bgColorInterpolateSpeed, float &screenShakeTimer, Vector2 &additionalViewportOffset, float &screenShakeDuration, 
    Vector2 &originalScreenShakeIntensity, float &screenShakeFrequency);
 
-void UpdateRenderVars(RenderVars &renderVars, const Vector2 editingViewportOffset, const bool isEditing, Vector2 &additionalViewportOffset, SDL_Window* root);
+void UpdateRenderVars(RenderVars &renderVars, const Vector2 editingViewportOffset, const MenuState menuState, Vector2 &additionalViewportOffset, SDL_Window* root);
 
 Size2D GetCanvasSize(const json memoryJson);
 
 std::mt19937 generator(std::random_device{}()); // Initialize random seed gen
 
-// FILE DECLARATION
 
-string openFile = "Slideshow1.slider";
 
-ifstream file(openFile);
+    // FILE DECLARATION
 
-json memoryJson = json::parse(file); // A copy of the json file which can be modified without changing the underlying file
+    string openFile = "Slideshow1.slider";
 
-// VARIABLE DECLARATION
+    ifstream file(openFile);
 
-Size2D windowSize{1280, 720}; 
+    json memoryJson = json::parse(file); // A copy of the json file which can be modified without changing the underlying file
 
-Size2D canvasSize = GetCanvasSize(memoryJson);
+    // VARIABLE DECLARATION
 
-float canvasScaleFactor = Min(windowSize.width / canvasSize.width, windowSize.height / canvasSize.height);
+    Size2D windowSize{1280, 720}; 
 
-Size2D viewportSize{static_cast<int>(canvasSize.width * canvasScaleFactor), static_cast<int>(canvasSize.height * canvasScaleFactor)};
+    Size2D canvasSize = GetCanvasSize(memoryJson);
 
-Vector2 appliedViewportOffset{0, 0}; // A 1 meaning 100% shifted out the screen
+    float canvasScaleFactor = Min(windowSize.width / canvasSize.width, windowSize.height / canvasSize.height);
+  
+    Size2D viewportSize{static_cast<int>(canvasSize.width * canvasScaleFactor), static_cast<int>(canvasSize.height * canvasScaleFactor)};
 
-RenderVars renderVars{
-    windowSize,
-    canvasSize,
-    viewportSize,
-    appliedViewportOffset,
-    canvasScaleFactor
-};
+    Vector2 appliedViewportOffset{0, 0}; // A 1 meaning 100% shifted out the screen
 
-unordered_map<uint64_t, Vector2> selectedElementOffsets{}; // the offset between the middle of the object and the cursor when it is first selected
-unordered_map<string, unordered_map<int, TTF_Font*>> fonts; // font are cashed so that you don't have to remake the font every time you want to use it. This is better for preformance
+    RenderVars renderVars{
+        windowSize,
+        canvasSize,
+        viewportSize,
+        appliedViewportOffset,
+        canvasScaleFactor
+    };
 
-int pageIndex = 0;
+    unordered_map<uint64_t, Vector2> selectedElementOffsets{}; // the offset between the middle of the object and the cursor when it is first selected
+    unordered_map<string, unordered_map<int, TTF_Font*>> fonts; // font are cashed so that you don't have to remake the font every time you want to use it. This is better for preformance
 
-int lastPageIndex = pageIndex;
+    int pageIndex = 0;
 
-bool isEditing = true;
+    int lastPageIndex = pageIndex;
 
-//        the applied offset is in the renderVars scruct
+    MenuState menuState = MenuState::Menu;
 
-const Vector2 editingViewportOffset{0.1, 0.1};
-Vector2 additionalViewportOffset{0, 0}; // This is for screen shake effects
+    //        the applied offset is in the renderVars scruct
 
-Vector2 originalScreenShakeIntensity{0, 0};
+    const Vector2 editingViewportOffset{0.1, 0.1};
+    Vector2 additionalViewportOffset{0, 0}; // This is for screen shake effects
 
-float screenShakeFrequency = 0; // determines how many times the shake ossolates in a given period of time
+    Vector2 originalScreenShakeIntensity{0, 0};
 
-float screenShakeTimer = 0;
-float screenShakeDuration = 0;
+    float screenShakeFrequency = 0; // determines how many times the shake ossolates in a given period of time
 
-int pageCount = GetPageCount(memoryJson);
+    float screenShakeTimer = 0;
+    float screenShakeDuration = 0;
 
-float deltaTime = 0;
+    int pageCount = GetPageCount(memoryJson);
 
-Color currentBgColor{0, 0, 0, 255};
-Color targetBgColor{};
-float bgColorInterpolateSpeed; // This will be set to a different value pased on the transition parameters
+    float deltaTime = 0;
 
-InputState editorInput{};
+    Color currentBgColor{0, 0, 0, 255};
+    Color targetBgColor{};
+    float bgColorInterpolateSpeed; // This will be set to a different value pased on the transition parameters
+
+    InputState editorInput{};
 
 
 int main() // Runs once on startup
@@ -159,7 +162,12 @@ int main() // Runs once on startup
                     Clamp(pageIndex, 0, pageCount -1);
                 }
                 if(event.key.key == SDLK_ESCAPE){
-                    isEditing = !isEditing;
+                    if(menuState != MenuState::Menu){
+                        menuState = menuState == MenuState::Editing ? MenuState::Viewing : MenuState::Editing;
+                    }
+                    else{
+                        menuState = MenuState::Editing; // TEMPORARY
+                    }
                 }
             }
         }
@@ -205,18 +213,19 @@ int main() // Runs once on startup
             additionalViewportOffset = {0, 0};
         }
         
-        UpdateRenderVars(renderVars, editingViewportOffset, isEditing, additionalViewportOffset, root);
+        UpdateRenderVars(renderVars, editingViewportOffset, menuState, additionalViewportOffset, root);
 
-        if(isEditing) UpdateEditor(memoryJson, pageIndex, editorInput, renderVars, selectedElementOffsets, fonts);
+        if(menuState == MenuState::Editing) UpdateEditor(memoryJson, pageIndex, editorInput, renderVars, selectedElementOffsets, fonts);
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        RenderViewRect(renderer, renderVars, currentBgColor);
+        if(menuState != MenuState::Menu) RenderViewRect(renderer, renderVars, currentBgColor);
+        else RenderMenu(renderer, renderVars, menuState);
 
-        if(isEditing) RenderOutline(renderer, pageIndex, memoryJson, renderVars, selectedElementOffsets);
+        if(menuState == MenuState::Editing) RenderOutline(renderer, pageIndex, memoryJson, renderVars, selectedElementOffsets);
 
-        RenderFile(memoryJson, pageIndex, renderer, renderVars, fonts);
+        if(menuState != MenuState::Menu) RenderFile(memoryJson, pageIndex, renderer, renderVars, fonts);
 
         SDL_RenderPresent(renderer);
 
@@ -289,14 +298,14 @@ void StartTransitions(const json jsonFileCurrentPage, Color &currentBgColor, Col
     }
 }
 
-void UpdateRenderVars(RenderVars &renderVars, const Vector2 editingViewportOffset, const bool isEditing, Vector2 &additionalViewportOffset, SDL_Window* root){
+void UpdateRenderVars(RenderVars &renderVars, const Vector2 editingViewportOffset, const MenuState menuState, Vector2 &additionalViewportOffset, SDL_Window* root){
 
     SDL_GetWindowSize(root, &renderVars.windowSize.width, &renderVars.windowSize.height);
     
     renderVars.canvasScaleFactor = Min(static_cast<float>(renderVars.windowSize.width) / renderVars.canvasSize.width, static_cast<float>(renderVars.windowSize.height) / renderVars.canvasSize.height);
     //cout << renderVars.canvasScaleFactor << endl;
 
-    if(isEditing){
+    if(menuState == MenuState::Editing){
         renderVars.viewportSize *= 0.8;
         renderVars.canvasScaleFactor *= 0.8;
 

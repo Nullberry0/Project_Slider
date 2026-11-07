@@ -6,7 +6,7 @@
 #include <SDL3_ttf/SDL_ttf.h> // Text render engine
 #include <SDL3_image/SDL_image.h>
 
-#include "Renderer.h"
+#include "Types.h"
 #include "Editor.h"
 
 using std::cout;
