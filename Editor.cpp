@@ -56,7 +56,7 @@ void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, R
     {
         auto& element = elements[i];
 
-        if(element["type"] == "rect")
+        if(element["type"] == "rect" || element["type"] == "image")
         {
             Size2D size{element["width"].get<int>(), element["height"].get<int>()};
 
