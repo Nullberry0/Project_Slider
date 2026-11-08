@@ -163,8 +163,27 @@ void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, Ren
     }
 }
 
-void RenderMenu(SDL_Renderer* renderer, RenderVars renderVars, MenuState menuState){
-    // YES IT IS DOING NOTHING!
+void RenderMenu(SDL_Renderer* renderer, RenderVars renderVars, MenuState menuState, string logoSrc){
+
+    Vector2 pos{
+        renderVars.canvasSize.width / 2.0f,
+        renderVars.canvasSize.height / 2.0f
+    };
+
+    SDL_Texture* imageTexture = IMG_LoadTexture(renderer, logoSrc.c_str());
+
+    SDL_SetTextureScaleMode(imageTexture, SDL_SCALEMODE_PIXELART); // Remove Bilinair filtering
+
+    int sameSize = static_cast<int>(renderVars.canvasSize.width / 1.2);
+
+    Size2D size{sameSize, sameSize};
+    ConvertCanvasToScreen(size, pos, renderVars, true);
+
+    SDL_FRect destination = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
+
+    SDL_RenderTexture(renderer, imageTexture, nullptr, &destination);
+    SDL_DestroyTexture(imageTexture);
+
 }
 
 void Clamp(int& value, int min, int max){

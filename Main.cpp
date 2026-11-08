@@ -221,7 +221,7 @@ int main() // Runs once on startup
         SDL_RenderClear(renderer);
 
         if(menuState != MenuState::Menu) RenderViewRect(renderer, renderVars, currentBgColor);
-        else RenderMenu(renderer, renderVars, menuState);
+        else RenderMenu(renderer, renderVars, menuState, "SlideshowFiles/LogoLoad.png");
 
         if(menuState == MenuState::Editing) RenderOutline(renderer, pageIndex, memoryJson, renderVars, selectedElementOffsets);
 

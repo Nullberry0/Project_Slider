@@ -7,6 +7,7 @@
 #include "Types.h"
 
 using std::unordered_map;
+using std::string;
 
 using json = nlohmann::json;
 
@@ -22,4 +23,4 @@ int GetPageCount(const nlohmann::json jsonFile);
 void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, RenderVars renderVars, std::unordered_map<uint64_t, Vector2> selectedElementOffsets);
 void ConvertCanvasToScreen(Size2D &size, Vector2 &pos, const RenderVars renderVars, const bool changeSize);
 
-void RenderMenu(SDL_Renderer* renderer, RenderVars renderVars, MenuState menuState);
+void RenderMenu(SDL_Renderer* renderer, RenderVars renderVars, MenuState menuState, string logoSrc);

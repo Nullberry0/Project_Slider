@@ -33,6 +33,7 @@ struct Vector2 {
     Vector2 operator-(const Size2D& other) const;
     Vector2 operator*(const Size2D& other) const;
     Vector2& operator-=(const Size2D& other);
+    Vector2& operator=(const Size2D& other);
 
     Vector2 operator/(float divider) const {
         return {x / divider, y / divider};
@@ -135,6 +136,11 @@ struct Size2D {
         height -= other.height;
         return *this;
     }
+    Size2D& operator/=(const Size2D& other) {
+        width /= other.width;
+        height /= other.height;
+        return *this;
+    }
 };
 
 
@@ -164,6 +170,12 @@ inline Vector2 Vector2::operator*(const Size2D& other) const {
 inline Vector2& Vector2::operator-=(const Size2D& other) {
     x -= other.width;
     y -= other.height;
+    return *this;
+}
+
+inline Vector2& Vector2::operator=(const Size2D& other) {
+    x = other.width;
+    y = other.height;
     return *this;
 }
 
