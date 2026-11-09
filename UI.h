@@ -8,9 +8,10 @@
 using std::string;
 
 enum class MenuState{
-    Menu,
+    StartMenu,
     Editing,
-    Viewing
+    Viewing,
+    BootCredits
 };
 
 enum class ButtonFunc{

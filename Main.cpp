@@ -75,12 +75,13 @@ std::mt19937 generator(std::random_device{}()); // Initialize random seed gen
 
     unordered_map<uint64_t, Vector2> selectedElementOffsets{}; // the offset between the middle of the object and the cursor when it is first selected
     unordered_map<string, unordered_map<int, TTF_Font*>> fonts; // font are cashed so that you don't have to remake the font every time you want to use it. This is better for preformance
+    unordered_map<string, SDL_Texture*> images; 
 
     int pageIndex = 0;
 
     int lastPageIndex = pageIndex;
 
-    MenuState menuState = MenuState::Menu;
+    MenuState menuState = MenuState::BootCredits;
 
     //        the applied offset is in the renderVars scruct
 
@@ -162,10 +163,10 @@ int main() // Runs once on startup
                     Clamp(pageIndex, 0, pageCount -1);
                 }
                 if(event.key.key == SDLK_ESCAPE){
-                    if(menuState != MenuState::Menu){
+                    if(menuState == MenuState::Viewing || menuState == MenuState::Editing){
                         menuState = menuState == MenuState::Editing ? MenuState::Viewing : MenuState::Editing;
                     }
-                    else{
+                    else if(menuState == MenuState::StartMenu){
                         menuState = MenuState::Editing; // TEMPORARY
                     }
                 }
@@ -220,12 +221,12 @@ int main() // Runs once on startup
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        if(menuState != MenuState::Menu) RenderViewRect(renderer, renderVars, currentBgColor);
-        else RenderMenu(renderer, renderVars, menuState, "SlideshowFiles/LogoLoad.png");
+        if(menuState == MenuState::Viewing || menuState == MenuState::Editing) RenderViewRect(renderer, renderVars, currentBgColor);
+        RenderMenu(renderer, renderVars, menuState, images, SDL_GetTicks()); // Slight delay before the logo pops up
 
         if(menuState == MenuState::Editing) RenderOutline(renderer, pageIndex, memoryJson, renderVars, selectedElementOffsets);
 
-        if(menuState != MenuState::Menu) RenderFile(memoryJson, pageIndex, renderer, renderVars, fonts);
+        if(menuState == MenuState::Viewing || menuState == MenuState::Editing) RenderFile(memoryJson, pageIndex, renderer, renderVars, fonts, images);
 
         SDL_RenderPresent(renderer);
 
@@ -237,8 +238,12 @@ int main() // Runs once on startup
             TTF_CloseFont(font);
         }
     }
+    for (auto& [imageSrc, image]: images) {
+        SDL_DestroyTexture(image);
+    }
 
     fonts.clear();
+    images.clear();
 
     SDL_DestroyWindow(root);
     TTF_Quit();

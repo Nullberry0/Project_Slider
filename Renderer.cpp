@@ -22,7 +22,7 @@ using std::unordered_map;
 using json = nlohmann::json;
 
 
-void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, RenderVars renderVars, unordered_map<string, unordered_map<int, TTF_Font*>> &fonts){
+void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, RenderVars renderVars, unordered_map<string, unordered_map<int, TTF_Font*>> &fonts, unordered_map<string, SDL_Texture*> &images){
 
     auto elements = jsonFile["pages"][openPageIndex]["elements"];
 
@@ -112,7 +112,7 @@ void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, 
             }
         }
         else if(type == "image"){
-            SDL_Texture* imageTexture = IMG_LoadTexture(renderer, element["src"].get<string>().c_str());
+            SDL_Texture* imageTexture = GetImage(element["src"].get<string>(), images, renderer);
 
             Size2D size{element["width"].get<int>(), element["height"].get<int>()};
             ConvertCanvasToScreen(size, pos, renderVars, true);
@@ -120,7 +120,6 @@ void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, 
             SDL_FRect destination = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
 
             SDL_RenderTexture(renderer, imageTexture, nullptr, &destination);
-            SDL_DestroyTexture(imageTexture);
         }
     }
 }
@@ -163,27 +162,48 @@ void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, Ren
     }
 }
 
-void RenderMenu(SDL_Renderer* renderer, RenderVars renderVars, MenuState menuState, string logoSrc){
+void RenderMenu(SDL_Renderer* renderer, RenderVars renderVars, MenuState menuState, unordered_map<string, SDL_Texture*> &images, Uint32 ticks){
 
-    Vector2 pos{
-        renderVars.canvasSize.width / 2.0f,
-        renderVars.canvasSize.height / 2.0f
-    };
+    if(menuState == MenuState::BootCredits)
+    {
+        if(ticks > 1200)    // Hide for the beginging
+        {       
+            Vector2 pos{
+                renderVars.canvasSize.width / 2.0f,
+                renderVars.canvasSize.height / 2.0f
+            };
 
-    SDL_Texture* imageTexture = IMG_LoadTexture(renderer, logoSrc.c_str());
+            SDL_Texture* imageTexture = GetImage("SlideshowFiles/LogoLoad.png", images, renderer);
 
-    SDL_SetTextureScaleMode(imageTexture, SDL_SCALEMODE_PIXELART); // Remove Bilinair filtering
+            SDL_SetTextureScaleMode(imageTexture, SDL_SCALEMODE_PIXELART); // Remove Bilinair filtering
 
-    int sameSize = static_cast<int>(renderVars.canvasSize.width / 1.2);
+            int sameSize = static_cast<int>(renderVars.canvasSize.width / 1.2);
 
-    Size2D size{sameSize, sameSize};
-    ConvertCanvasToScreen(size, pos, renderVars, true);
+            Size2D size{sameSize, sameSize};
+            ConvertCanvasToScreen(size, pos, renderVars, true);
 
-    SDL_FRect destination = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
+            SDL_FRect destination = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
 
-    SDL_RenderTexture(renderer, imageTexture, nullptr, &destination);
-    SDL_DestroyTexture(imageTexture);
+            SDL_RenderTexture(renderer, imageTexture, nullptr, &destination);
+        }
+    }
 
+}
+
+SDL_Texture* GetImage(string src, unordered_map<string, SDL_Texture*> &images, SDL_Renderer* renderer){
+    SDL_Texture* imageTexture;
+
+    auto findVar = images.find(src.c_str());
+
+    if(findVar != images.end()){
+        imageTexture = images[findVar->first];
+    }
+    else{
+        imageTexture = IMG_LoadTexture(renderer, src.c_str());
+        images[src.c_str()] = imageTexture;
+    }
+    return imageTexture;
+    
 }
 
 void Clamp(int& value, int min, int max){
