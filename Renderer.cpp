@@ -166,7 +166,7 @@ void RenderMenu(SDL_Renderer* renderer, RenderVars renderVars, MenuState menuSta
 
     if(menuState == MenuState::BootCredits)
     {
-        if(ticks > 1200)    // Hide for the beginging
+        if(ticks > 1200 && ticks < 4500)    // Hide for the beginging
         {       
             Vector2 pos{
                 renderVars.canvasSize.width / 2.0f,
@@ -174,6 +174,13 @@ void RenderMenu(SDL_Renderer* renderer, RenderVars renderVars, MenuState menuSta
             };
 
             SDL_Texture* imageTexture = GetImage("SlideshowFiles/LogoLoad.png", images, renderer);
+
+            if(ticks > 2700){
+                int d = 255 -((ticks - 2700) * .4); 
+                Clamp(d, 0, 255);
+                Uint8 darkness = static_cast<int>(d);
+                SDL_SetTextureColorMod(imageTexture, darkness, darkness, darkness);
+            }
 
             SDL_SetTextureScaleMode(imageTexture, SDL_SCALEMODE_PIXELART); // Remove Bilinair filtering
 
