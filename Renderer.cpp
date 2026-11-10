@@ -175,8 +175,8 @@ void RenderMenu(SDL_Renderer* renderer, RenderVars renderVars, MenuState menuSta
 
             SDL_Texture* imageTexture = GetImage("SlideshowFiles/LogoLoad.png", images, renderer);
 
-            if(ticks > 2700){
-                int d = 255 -((ticks - 2700) * .4); 
+            if(ticks > 2000){
+                int d = 255 -((ticks - 2000) * .4); 
                 Clamp(d, 0, 255);
                 Uint8 darkness = static_cast<int>(d);
                 SDL_SetTextureColorMod(imageTexture, darkness, darkness, darkness);

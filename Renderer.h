@@ -1,5 +1,7 @@
 #pragma once // just good to have so it doesnt get coplied multiple times 
+
 #include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h> // Text render engine
 #include <nlohmann/json.hpp>
 #include <utility>
 

@@ -12,6 +12,8 @@
 #include "Types.h"
 #include "Editor.h" // The editor header file
 #include "UI.h"
+#include "Menu.h"
+#include "Renderer.h"
 
 using std::cout;
 using std::cerr;
@@ -81,7 +83,7 @@ std::mt19937 generator(std::random_device{}()); // Initialize random seed gen
 
     int lastPageIndex = pageIndex;
 
-    MenuState menuState = MenuState::BootCredits;
+    MenuState menuState = MenuState::StartMenu;
 
     //        the applied offset is in the renderVars scruct
 
@@ -222,7 +224,7 @@ int main() // Runs once on startup
         SDL_RenderClear(renderer);
 
         if(menuState == MenuState::Viewing || menuState == MenuState::Editing) RenderViewRect(renderer, renderVars, currentBgColor);
-        RenderMenu(renderer, renderVars, menuState, images, SDL_GetTicks()); // Slight delay before the logo pops up
+        HandleMenu(renderer, renderVars, menuState, images, SDL_GetTicks());
 
         if(menuState == MenuState::Editing) RenderOutline(renderer, pageIndex, memoryJson, renderVars, selectedElementOffsets);
 
