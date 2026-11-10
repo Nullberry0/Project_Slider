@@ -162,11 +162,11 @@ void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, Ren
     }
 }
 
-void RenderMenu(SDL_Renderer* renderer, RenderVars renderVars, MenuState menuState, unordered_map<string, SDL_Texture*> &images, Uint32 ticks){
+MenuState RenderMenu(SDL_Renderer* renderer, RenderVars renderVars, MenuState menuState, unordered_map<string, SDL_Texture*> &images, Uint32 ticks){
 
     if(menuState == MenuState::BootCredits)
     {
-        if(ticks > 1200 && ticks < 4500)    // Hide for the beginging
+        if(ticks > 1200 && ticks < 3500)    // Hide for the beginging
         {       
             Vector2 pos{
                 renderVars.canvasSize.width / 2.0f,
@@ -192,9 +192,14 @@ void RenderMenu(SDL_Renderer* renderer, RenderVars renderVars, MenuState menuSta
             SDL_FRect destination = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
 
             SDL_RenderTexture(renderer, imageTexture, nullptr, &destination);
+
+            return MenuState::BootCredits;
+        }
+        if(ticks > 3500){
+            return MenuState::StartMenu;
         }
     }
-
+    return menuState;
 }
 
 SDL_Texture* GetImage(string src, unordered_map<string, SDL_Texture*> &images, SDL_Renderer* renderer){

@@ -83,7 +83,7 @@ std::mt19937 generator(std::random_device{}()); // Initialize random seed gen
 
     int lastPageIndex = pageIndex;
 
-    MenuState menuState = MenuState::StartMenu;
+    MenuState menuState = MenuState::BootCredits;
 
     //        the applied offset is in the renderVars scruct
 
