@@ -162,6 +162,20 @@ void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, Ren
     }
 }
 
+void RenderUIButtons(SDL_Renderer* renderer, RenderVars renderVars, vector<Button> buttons){
+    for(const auto &button : buttons){
+
+        Vector2 pos;
+        Size2D size;
+        ConvertUIToScreen(button.anchor, button.pixelOffset, button.relativeSize, button.pixelSize, renderVars, pos, size);
+
+        SDL_FRect rect = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
+
+        SDL_SetRenderDrawColor(renderer, button.color.r, button.color.g, button.color.b, 255);
+        SDL_RenderFillRect(renderer, &rect);
+    }
+}
+
 MenuState RenderMenu(SDL_Renderer* renderer, RenderVars renderVars, MenuState menuState, unordered_map<string, SDL_Texture*> &images, Uint32 ticks){
 
     if(menuState == MenuState::BootCredits)
@@ -237,4 +251,23 @@ void ConvertCanvasToScreen(Size2D &size, Vector2 &pos, const RenderVars renderVa
 
     pos = ((renderVars.windowSize - renderVars.viewportSize)/2) + pos / renderVars.canvasSize * renderVars.viewportSize - (size /2); //The part in the beginning is so that the middle is relative to the view rect
     pos += renderVars.windowSize * renderVars.appliedViewportOffset; // Offset
+}
+
+void ConvertUIToScreen(UIAnchor anchor, Vector2 pixelOffset, Vector2 relativeSize, Size2D pixelSize, RenderVars renderVars, Vector2 &pos, Size2D &size){
+    if(anchor == UIAnchor::Center){
+        pos = renderVars.windowSize /2;
+    }
+    else{
+        pos = renderVars.windowSize /2; // TEMPORARY
+    }
+    pos += pixelOffset;
+    
+    if(pixelSize == Size2D{-1, -1}){
+        size = renderVars.windowSize * relativeSize;
+    }
+    else{
+        size = pixelSize;
+    }
+
+    pos -= size/2;
 }

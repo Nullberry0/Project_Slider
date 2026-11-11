@@ -118,6 +118,12 @@ struct Size2D {
             static_cast<float>(height) / other.height
         };
     }
+    Vector2 operator/(const Vector2& other) const {
+        return {
+            width / other.x,
+            height / other.y
+        };
+    }
 
     Size2D& operator+=(int adder) {
         width += adder;
@@ -141,6 +147,7 @@ struct Size2D {
         height /= other.height;
         return *this;
     }
+    bool operator==(const Size2D&) const = default;
 };
 
 
@@ -181,10 +188,10 @@ inline Vector2& Vector2::operator=(const Size2D& other) {
 
 
 struct Color {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-    uint8_t a;
+    uint8_t r = 0;
+    uint8_t g = 0;
+    uint8_t b = 0;
+    uint8_t a = 255;
 
     uint8_t& operator[](int index) {
         switch (index) {

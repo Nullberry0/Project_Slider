@@ -17,12 +17,32 @@ enum class MenuState{
 enum class ButtonFunc{
     StartEditing
 };
+enum class ButtonGroup{
+    StartPage,
+    MainEditing
+};
+
+enum class UIAnchor{
+    TopLeft,
+    TopCenter,
+    TopRight,
+    CenterLeft,
+    Center,
+    CenterRight,
+    BottomLeft,
+    BottomCenter,
+    BottomRight
+};
 
 struct Button {
     ButtonFunc func;
 
-    Vector2 pos;
-    Size2D size;
+    ButtonGroup group;
+
+    UIAnchor anchor;
+    Vector2 pixelOffset;
+    Size2D pixelSize; // if is -1 then use relative size, otherwise use pixel size
+    Vector2 relativeSize; // a 1 is full window a 0 being no pixels
 
     Color color;
 

@@ -79,6 +79,18 @@ std::mt19937 generator(std::random_device{}()); // Initialize random seed gen
     unordered_map<string, unordered_map<int, TTF_Font*>> fonts; // font are cashed so that you don't have to remake the font every time you want to use it. This is better for preformance
     unordered_map<string, SDL_Texture*> images; 
 
+    vector<Button> UIButtons{{
+        ButtonFunc::StartEditing,
+        ButtonGroup::StartPage,
+        UIAnchor::Center,
+        Vector2{0, 0}, // offset
+        Size2D{-1, -1}, // pixel size
+        Vector2{0.3, 0.3}, // relative size
+        Color{70, 130, 220, 255},
+        true, // visible
+        false // is pressed
+    }};
+
     int pageIndex = 0;
 
     int lastPageIndex = pageIndex;
@@ -224,11 +236,12 @@ int main() // Runs once on startup
         SDL_RenderClear(renderer);
 
         if(menuState == MenuState::Viewing || menuState == MenuState::Editing) RenderViewRect(renderer, renderVars, currentBgColor);
-        HandleMenu(renderer, renderVars, menuState, images, SDL_GetTicks());
 
         if(menuState == MenuState::Editing) RenderOutline(renderer, pageIndex, memoryJson, renderVars, selectedElementOffsets);
 
         if(menuState == MenuState::Viewing || menuState == MenuState::Editing) RenderFile(memoryJson, pageIndex, renderer, renderVars, fonts, images);
+        HandleMenu(renderer, renderVars, menuState, images, SDL_GetTicks());
+        RenderUIButtons(renderer, renderVars, UIButtons);
 
         SDL_RenderPresent(renderer);
 
