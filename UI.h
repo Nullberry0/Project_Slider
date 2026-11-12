@@ -54,3 +54,5 @@ struct Button {
 };
 
 void HandleButtons(RenderVars renderVars, vector<Button> &buttons, InputState inputState, MenuState &menuState);
+
+bool ButtonVisibility(Button button, MenuState menuState);
