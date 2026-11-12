@@ -4,8 +4,10 @@
 #include <iostream> 
 
 #include "Types.h"
+#include "UI.h"
 
 using std::string;
+using std::vector;
 
 enum class MenuState{
     StartMenu,
@@ -51,4 +53,4 @@ struct Button {
     bool isBeingPressed = false; // This is for displaying a different version of the button while it is being pressed
 };
 
-// void HandleButtons(RenderVars renderVars, );
+void HandleButtons(RenderVars renderVars, vector<Button> &buttons, InputState inputState);

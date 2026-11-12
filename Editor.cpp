@@ -8,6 +8,7 @@
 
 #include "Types.h"
 #include "Editor.h"
+#include "Renderer.h"
 
 using std::cout;
 using std::cerr;
@@ -64,9 +65,7 @@ void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, R
 
             ConvertCanvasToScreen(size, topLeftPos, renderVars, true);
 
-            if(topLeftPos.x < input.mousePos.x && topLeftPos.x + size.width > input.mousePos.x && 
-                input.mousePos.y > topLeftPos.y && topLeftPos.y + size.height > input.mousePos.y){ // box collision
-
+            if(IsPointInBox(topLeftPos, topLeftPos + size, input.mousePos)){
                 if(input.leftMouse == MouseState::Pressed){
                     Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + (renderVars.windowSize * renderVars.appliedViewportOffset);
 
@@ -76,7 +75,7 @@ void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, R
                     selectedElementOffsets[element["id"].get<int>()] = Vector2{element["x"].get<float>(), element["y"].get<float>()} - canvasMousePos;
 
                 }
-            }
+            }   
             else{
                 if(input.leftMouse == MouseState::Pressed){
                     selectedElementOffsets.erase(element["id"].get<int>());
@@ -127,9 +126,7 @@ void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, R
 
             ConvertCanvasToScreen(size, topLeftPos, renderVars, false);
 
-            if(topLeftPos.x < input.mousePos.x && topLeftPos.x + size.width > input.mousePos.x && 
-                input.mousePos.y > topLeftPos.y && topLeftPos.y + size.height > input.mousePos.y){ // box collision
-
+            if(IsPointInBox(topLeftPos, topLeftPos + size, input.mousePos)){
                 if(input.leftMouse == MouseState::Pressed){
                     Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + (renderVars.windowSize * renderVars.appliedViewportOffset);
 
@@ -159,4 +156,12 @@ void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, R
 
 float Map(float value, float inputStart, float inputEnd, float outputStart, float outputEnd){
     return outputStart + ((outputEnd - outputStart) / (inputEnd - inputStart)) * (value - inputStart);
+}
+
+bool IsPointInBox(Vector2 pos1, Vector2 pos2, Vector2 point){
+    if(pos1.x < point.x && pos2.x > point.x && 
+        point.y > pos1.y && pos2.y > point.y){
+            return true;
+    }
+    else return false;
 }

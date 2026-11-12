@@ -171,7 +171,8 @@ void RenderUIButtons(SDL_Renderer* renderer, RenderVars renderVars, vector<Butto
 
         SDL_FRect rect = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
 
-        SDL_SetRenderDrawColor(renderer, button.color.r, button.color.g, button.color.b, 255);
+        if(button.isBeingPressed) SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        else SDL_SetRenderDrawColor(renderer, button.color.r, button.color.g, button.color.b, 255);
         SDL_RenderFillRect(renderer, &rect);
     }
 }

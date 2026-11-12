@@ -2,28 +2,10 @@
 
 #include <nlohmann/json.hpp> // Run json files
 #include <SDL3/SDL.h>
-
-#include "Renderer.h"
+#include <SDL3_ttf/SDL_ttf.h>
 
 using std::unordered_map;
-
-enum class Keystroke {
-    Delete, 
-    None
-};
-
-enum class MouseState {
-    Pressed, 
-    Released, 
-    Holding,
-    None
-};
-
-struct InputState {
-    Vector2 mousePos{};
-    MouseState leftMouse = MouseState::None;
-    Keystroke keyStroke;
-};
+using std::string;
 
 InputState RecordEditorInput(SDL_Event event);
 

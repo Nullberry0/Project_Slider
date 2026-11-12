@@ -32,6 +32,7 @@ struct Vector2 {
     Vector2 operator/(const Size2D& other) const;
     Vector2 operator-(const Size2D& other) const;
     Vector2 operator*(const Size2D& other) const;
+    Vector2 operator+(const Size2D& other) const;
     Vector2& operator-=(const Size2D& other);
     Vector2& operator=(const Size2D& other);
 
@@ -173,6 +174,12 @@ inline Vector2 Vector2::operator*(const Size2D& other) const {
         y * other.height
     };
 }
+inline Vector2 Vector2::operator+(const Size2D& other) const {
+    return {
+        x + other.width,
+        y + other.height
+    };
+}
 
 inline Vector2& Vector2::operator-=(const Size2D& other) {
     x -= other.width;
@@ -204,8 +211,23 @@ struct Color {
     }
 };
 
+enum class Keystroke {
+    Delete, 
+    None
+};
 
+enum class MouseState {
+    Pressed, 
+    Released, 
+    Holding,
+    None
+};
 
+struct InputState {
+    Vector2 mousePos{};
+    MouseState leftMouse = MouseState::None;
+    Keystroke keyStroke;
+};
 
 struct RenderVars
 {

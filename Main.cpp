@@ -235,6 +235,8 @@ int main() // Runs once on startup
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
+        HandleButtons(renderVars, UIButtons, editorInput);
+
         if(menuState == MenuState::Viewing || menuState == MenuState::Editing) RenderViewRect(renderer, renderVars, currentBgColor);
 
         if(menuState == MenuState::Editing) RenderOutline(renderer, pageIndex, memoryJson, renderVars, selectedElementOffsets);
