@@ -53,4 +53,4 @@ struct Button {
     bool isBeingPressed = false; // This is for displaying a different version of the button while it is being pressed
 };
 
-void HandleButtons(RenderVars renderVars, vector<Button> &buttons, InputState inputState);
+void HandleButtons(RenderVars renderVars, vector<Button> &buttons, InputState inputState, MenuState &menuState);

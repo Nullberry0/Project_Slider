@@ -9,7 +9,7 @@
 using std::string;
 using std::vector;
 
-void HandleButtons(RenderVars renderVars, vector<Button> &buttons, InputState inputState){
+void HandleButtons(RenderVars renderVars, vector<Button> &buttons, InputState inputState, MenuState &menuState){
     for(auto &button : buttons){
         Vector2 pos;
         Size2D size;
@@ -17,6 +17,11 @@ void HandleButtons(RenderVars renderVars, vector<Button> &buttons, InputState in
         if(IsPointInBox(pos, pos + size, inputState.mousePos)){
             if(inputState.leftMouse == MouseState::Pressed || inputState.leftMouse == MouseState::Holding ){
                 button.isBeingPressed = true;
+                if(inputState.leftMouse == MouseState::Pressed){
+                    if(button.func == ButtonFunc::StartEditing){
+                        menuState = MenuState::Editing;
+                    }
+                }
             }
             else{
                 button.isBeingPressed = false;
