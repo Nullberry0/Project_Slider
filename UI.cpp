@@ -17,13 +17,18 @@ void HandleButtons(RenderVars renderVars, vector<Button> &buttons, InputState in
         if(IsPointInBox(pos, pos + size, inputState.mousePos)){
             if(inputState.leftMouse == MouseState::Pressed || inputState.leftMouse == MouseState::Holding ){
                 button.isBeingPressed = true;
-                if(inputState.leftMouse == MouseState::Pressed){
-                    if(button.func == ButtonFunc::StartEditing){
-                        menuState = MenuState::Editing;
-                    }
-                }
             }
             else{
+                button.isBeingPressed = false;
+            }
+            if(inputState.leftMouse == MouseState::Released){
+                if(button.func == ButtonFunc::StartEditing){
+                    menuState = MenuState::Editing;
+                }
+            }
+        }
+        else{
+            if(inputState.leftMouse == MouseState::Released){
                 button.isBeingPressed = false;
             }
         }
