@@ -168,7 +168,7 @@ void RenderUIButtons(SDL_Renderer* renderer, RenderVars renderVars, vector<Butto
         {
             Vector2 pos;
             Size2D size;
-            ConvertUIToScreen(button.anchor, button.pixelOffset, button.relativeSize, button.pixelSize, renderVars, pos, size);
+            ConvertUIToScreen(button.anchor, button.pixelOffset, button.relativeSize, button.pixelSize, button.preserveAspect, renderVars, pos, size);
 
             SDL_FRect rect = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
 
@@ -256,7 +256,7 @@ void ConvertCanvasToScreen(Size2D &size, Vector2 &pos, const RenderVars renderVa
     pos += renderVars.windowSize * renderVars.appliedViewportOffset; // Offset
 }
 
-void ConvertUIToScreen(UIAnchor anchor, Vector2 pixelOffset, Vector2 relativeSize, Size2D pixelSize, RenderVars renderVars, Vector2 &pos, Size2D &size){
+void ConvertUIToScreen(UIAnchor anchor, Vector2 pixelOffset, Vector2 relativeSize, Size2D pixelSize, bool preserveAspect, RenderVars renderVars, Vector2 &pos, Size2D &size){
     if(anchor == UIAnchor::Center){
         pos = renderVars.windowSize /2;
     }
@@ -266,7 +266,12 @@ void ConvertUIToScreen(UIAnchor anchor, Vector2 pixelOffset, Vector2 relativeSiz
     pos += pixelOffset;
     
     if(pixelSize == Size2D{-1, -1}){
-        size =  relativeSize * Min(renderVars.windowSize.width, renderVars.windowSize.height);
+        if(preserveAspect){
+            size = relativeSize * Min(renderVars.windowSize.width, renderVars.windowSize.height);
+        }
+        else{
+            size = relativeSize * renderVars.windowSize;
+        }
     }
     else{
         size = pixelSize;

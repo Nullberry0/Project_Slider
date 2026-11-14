@@ -15,7 +15,7 @@ void HandleButtons(RenderVars renderVars, vector<Button> &buttons, InputState in
             button.visible = true;
             Vector2 pos;
             Size2D size;
-            ConvertUIToScreen(button.anchor, button.pixelOffset, button.relativeSize, button.pixelSize, renderVars, pos, size);
+            ConvertUIToScreen(button.anchor, button.pixelOffset, button.relativeSize, button.pixelSize, button.preserveAspect, renderVars, pos, size);
             if(IsPointInBox(pos, pos + size, inputState.mousePos)){
                 if(inputState.leftMouse == MouseState::Pressed || inputState.leftMouse == MouseState::Holding ){
                     button.isBeingPressed = true;
