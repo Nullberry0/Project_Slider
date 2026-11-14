@@ -41,6 +41,8 @@ void StartTransitions(const json jsonFileCurrentPage, Color &currentBgColor, Col
 
 void UpdateRenderVars(RenderVars &renderVars, const Vector2 editingViewportOffset, const MenuState menuState, Vector2 &additionalViewportOffset, SDL_Window* root);
 
+void UpdateRenderVars(RenderVars &renderVars, const Vector2 editingViewportOffset, const MenuState menuState, Vector2 &additionalViewportOffset, float editingViewportSizeModificationPx ,SDL_Window* root);
+
 Size2D GetCanvasSize(const json memoryJson);
 
 std::mt19937 generator(std::random_device{}()); // Initialize random seed gen
@@ -65,7 +67,7 @@ std::mt19937 generator(std::random_device{}()); // Initialize random seed gen
   
     Size2D viewportSize{static_cast<int>(canvasSize.width * canvasScaleFactor), static_cast<int>(canvasSize.height * canvasScaleFactor)};
 
-    Vector2 appliedViewportOffset{0, 0}; // A 1 meaning 100% shifted out the screen
+    Vector2 appliedViewportOffset{0, 0}; // in px
 
     RenderVars renderVars{
         windowSize,
@@ -100,8 +102,9 @@ std::mt19937 generator(std::random_device{}()); // Initialize random seed gen
 
     //        the applied offset is in the renderVars scruct
 
-    const Vector2 editingViewportOffset{0.1, 0.1};
-    Vector2 additionalViewportOffset{0, 0}; // This is for screen shake effects
+    const Vector2 editingViewportOffset{0, 100}; // in Pixels
+    Vector2 additionalViewportOffset{0, 0}; // This is for screen shake effects, is in percentage for consistancy across window sizes
+    float editingViewportSizeModificationPx = -200;
 
     Vector2 originalScreenShakeIntensity{0, 0};
 
@@ -229,7 +232,7 @@ int main() // Runs once on startup
             additionalViewportOffset = {0, 0};
         }
         
-        UpdateRenderVars(renderVars, editingViewportOffset, menuState, additionalViewportOffset, root);
+        UpdateRenderVars(renderVars, editingViewportOffset, menuState, additionalViewportOffset,editingViewportSizeModificationPx, root);
 
         if(menuState == MenuState::Editing) UpdateEditor(memoryJson, pageIndex, editorInput, renderVars, selectedElementOffsets, fonts);
 
@@ -321,26 +324,29 @@ void StartTransitions(const json jsonFileCurrentPage, Color &currentBgColor, Col
     }
 }
 
-void UpdateRenderVars(RenderVars &renderVars, const Vector2 editingViewportOffset, const MenuState menuState, Vector2 &additionalViewportOffset, SDL_Window* root){
+void UpdateRenderVars(RenderVars &renderVars, const Vector2 editingViewportOffset, const MenuState menuState, Vector2 &additionalViewportOffset, float editingViewportSizeModificationPx ,SDL_Window* root){
 
     SDL_GetWindowSize(root, &renderVars.windowSize.width, &renderVars.windowSize.height);
+    cout << (menuState == MenuState::Editing) << endl;
     
     renderVars.canvasScaleFactor = Min(static_cast<float>(renderVars.windowSize.width) / renderVars.canvasSize.width, static_cast<float>(renderVars.windowSize.height) / renderVars.canvasSize.height);
-    //cout << renderVars.canvasScaleFactor << endl;
 
     if(menuState == MenuState::Editing){
-        renderVars.viewportSize *= 0.8;
-        renderVars.canvasScaleFactor *= 0.8;
+        renderVars.canvasScaleFactor = Min((renderVars.windowSize.width + editingViewportSizeModificationPx) / renderVars.canvasSize.width, (renderVars.windowSize.height + editingViewportSizeModificationPx) / renderVars.canvasSize.height);
 
-        renderVars.appliedViewportOffset = editingViewportOffset;
+        renderVars.appliedViewportOffset = editingViewportOffset; 
     }
     else{
         renderVars.appliedViewportOffset = {0, 0};
     }
+    cout << renderVars.viewportSize.width << endl;
+    cout << renderVars.canvasScaleFactor << endl;
 
     renderVars.viewportSize = renderVars.canvasSize * renderVars.canvasScaleFactor;
 
-    renderVars.appliedViewportOffset += additionalViewportOffset;
+    cout << renderVars.appliedViewportOffset.y << endl;
+
+    renderVars.appliedViewportOffset += (additionalViewportOffset * renderVars.windowSize); // because additional is in percentage
 }
 
 bool StartSDL(){

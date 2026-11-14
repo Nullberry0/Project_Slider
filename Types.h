@@ -112,6 +112,12 @@ struct Size2D {
             height - other.y
         };
     }
+    Vector2 operator-(const float& other) const {
+        return {
+            width - other,
+            height - other
+        };
+    }
 
     Vector2 operator/(const Size2D& other) const {
         return {
@@ -141,6 +147,11 @@ struct Size2D {
     Size2D& operator-=(const Size2D& other) {
         width -= other.width;
         height -= other.height;
+        return *this;
+    }
+    Size2D& operator-=(const float& other) {
+        width -= other;
+        height -= other;
         return *this;
     }
     Size2D& operator/=(const Size2D& other) {

@@ -67,7 +67,7 @@ void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, R
 
             if(IsPointInBox(topLeftPos, topLeftPos + size, input.mousePos)){
                 if(input.leftMouse == MouseState::Pressed){
-                    Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + (renderVars.windowSize * renderVars.appliedViewportOffset);
+                    Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + renderVars.appliedViewportOffset;
 
                     Vector2 canvasMousePos{ Map(input.mousePos.x - offset.x, 0, renderVars.viewportSize.width, 0, renderVars.canvasSize.width),
                         Map(input.mousePos.y - offset.y, 0, renderVars.viewportSize.height, 0, renderVars.canvasSize.height)};
@@ -84,7 +84,7 @@ void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, R
 
             if(selectedElementOffsets.contains(element["id"].get<int>()) && input.leftMouse == MouseState::Holding) // change the elements position if it is being held
             {
-                Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + (renderVars.windowSize * renderVars.appliedViewportOffset);
+                Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + renderVars.appliedViewportOffset;
 
                 element["x"] = Map(input.mousePos.x - offset.x, 0, renderVars.viewportSize.width, 0, renderVars.canvasSize.width) + selectedElementOffsets[element["id"].get<int>()].x;
                 element["y"] = Map(input.mousePos.y - offset.y, 0, renderVars.viewportSize.height, 0, renderVars.canvasSize.height) + selectedElementOffsets[element["id"].get<int>()].y;
@@ -128,7 +128,7 @@ void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, R
 
             if(IsPointInBox(topLeftPos, topLeftPos + size, input.mousePos)){
                 if(input.leftMouse == MouseState::Pressed){
-                    Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + (renderVars.windowSize * renderVars.appliedViewportOffset);
+                    Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + renderVars.appliedViewportOffset;
 
                     Vector2 canvasMousePos{ Map(input.mousePos.x - offset.x, 0, renderVars.viewportSize.width, 0, renderVars.canvasSize.width),  
                         Map(input.mousePos.y - offset.y, 0, renderVars.viewportSize.height, 0, renderVars.canvasSize.height)};
@@ -144,7 +144,7 @@ void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, R
 
             if(selectedElementOffsets.contains(element["id"].get<int>()) && input.leftMouse == MouseState::Holding) // change the elements position if it is being held
             {
-                Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + (renderVars.windowSize * renderVars.appliedViewportOffset);
+                Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + renderVars.appliedViewportOffset;
 
                 element["x"] = Map(input.mousePos.x - offset.x, 0, renderVars.viewportSize.width, 0, renderVars.canvasSize.width) + selectedElementOffsets[element["id"].get<int>()].x;
                 element["y"] = Map(input.mousePos.y - offset.y, 0, renderVars.viewportSize.height, 0, renderVars.canvasSize.height) + selectedElementOffsets[element["id"].get<int>()].y;

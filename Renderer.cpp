@@ -126,7 +126,7 @@ void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, 
 
 void RenderViewRect(SDL_Renderer* renderer, RenderVars renderVars, Color bgColor) {
 
-    Vector2 pos = (renderVars.windowSize - renderVars.viewportSize) /2 + (renderVars.windowSize * renderVars.appliedViewportOffset);
+    Vector2 pos = (renderVars.windowSize - renderVars.viewportSize) /2 + renderVars.appliedViewportOffset;
 
     SDL_FRect rect = {pos.x, pos.y, static_cast<float>(renderVars.viewportSize.width), static_cast<float>(renderVars.viewportSize.height) };
 
@@ -253,7 +253,7 @@ void ConvertCanvasToScreen(Size2D &size, Vector2 &pos, const RenderVars renderVa
     if(changeSize) size = size / renderVars.canvasSize * renderVars.viewportSize;
 
     pos = ((renderVars.windowSize - renderVars.viewportSize)/2) + pos / renderVars.canvasSize * renderVars.viewportSize - (size /2); //The part in the beginning is so that the middle is relative to the view rect
-    pos += renderVars.windowSize * renderVars.appliedViewportOffset; // Offset
+    pos += renderVars.appliedViewportOffset; // Offset
 }
 
 void ConvertUIToScreen(UIAnchor anchor, Vector2 pixelOffset, Vector2 relativeSize, Size2D pixelSize, bool preserveAspect, RenderVars renderVars, Vector2 &pos, Size2D &size){
