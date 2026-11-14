@@ -88,6 +88,7 @@ std::mt19937 generator(std::random_device{}()); // Initialize random seed gen
         Vector2{0.3, 0.3}, // relative size
         Color{70, 130, 220, 255},
         true, // visible
+        true, // aspect locked
         false // is pressed
     }};
 

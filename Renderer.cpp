@@ -266,7 +266,7 @@ void ConvertUIToScreen(UIAnchor anchor, Vector2 pixelOffset, Vector2 relativeSiz
     pos += pixelOffset;
     
     if(pixelSize == Size2D{-1, -1}){
-        size = renderVars.windowSize * relativeSize;
+        size =  relativeSize * Min(renderVars.windowSize.width, renderVars.windowSize.height);
     }
     else{
         size = pixelSize;

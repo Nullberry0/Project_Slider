@@ -50,6 +50,8 @@ struct Button {
 
     bool visible = true;
 
+    bool locketAspect = true;
+
     bool isBeingPressed = false; // This is for displaying a different version of the button while it is being pressed
 };
 
