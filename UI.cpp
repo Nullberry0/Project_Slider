@@ -8,47 +8,80 @@
 
 using std::string;
 using std::vector;
+using std::visit;
+using std::holds_alternative;
+using std::is_same_v;
+using std::decay_t;
+using std::cout;
+using std::endl;
 
-void HandleButtons(RenderVars renderVars, vector<Button> &buttons, InputState inputState, MenuState &menuState){
-    for(auto &button : buttons){
-        if(ButtonVisibility(button, menuState)){
-            button.visible = true;
-            Vector2 pos;
-            Size2D size;
-            ConvertUIToScreen(button.anchor, button.pixelOffset, button.relativeSize, button.pixelSize, button.preserveAspect, renderVars, pos, size);
-            if(IsPointInBox(pos, pos + size, inputState.mousePos)){
-                if(inputState.leftMouse == MouseState::Pressed || inputState.leftMouse == MouseState::Holding ){
-                    button.isBeingPressed = true;
+void HandleUIElements(RenderVars renderVars, vector<UIElement> &UIElements, InputState inputState, MenuState &menuState){
+    for(auto &element: UIElements){
+        visit([&](auto &ui) {
+            if(ButtonVisibility(element, menuState) == true){
+                ui.properties.visible = true;
+                Vector2 pos;
+                Size2D size;
+                ConvertUIToScreen(ui.properties.anchor, ui.properties.pixelOffset, ui.properties.relativeSize, ui.properties.pixelSize, renderVars, pos, size);
+                if(IsPointInBox(pos, pos + size, inputState.mousePos)){
+                    if(inputState.leftMouse == MouseState::Pressed || inputState.leftMouse == MouseState::Holding ){
+                        ui.isBeingPressed = true;
+                    }
+                    else{
+                        ui.isBeingPressed = false;
+                    }
+                    if constexpr (is_same_v<decay_t<decltype(ui)>, Button>) { // only compile if, decay_t removes the & so button& becomes button
+                        if(inputState.leftMouse == MouseState::Released){
+                            if(ui.func == ButtonFunc::StartEditing){
+                                menuState = MenuState::Editing;
+                            }
+                            if(ui.func == ButtonFunc::InsertRect){
+                                // insert a rect here;
+                            }
+                        }
+                    }
                 }
                 else{
-                    button.isBeingPressed = false;
-                }
-                if(inputState.leftMouse == MouseState::Released){
-                    if(button.func == ButtonFunc::StartEditing){
-                        menuState = MenuState::Editing;
+                    if(inputState.leftMouse == MouseState::Released){
+                        ui.isBeingPressed = false;
                     }
                 }
             }
             else{
-                if(inputState.leftMouse == MouseState::Released){
-                    button.isBeingPressed = false;
-                }
+                ui.properties.visible = false;
             }
-        }
-        else{
-            button.visible = false;
-        }
+        }, element);
     }
 }
 
-bool ButtonVisibility(Button button, MenuState menuState){
-    if(button.group == ButtonGroup::StartPage){
-        if(menuState == MenuState::StartMenu){
-            return true;
+bool ButtonVisibility(UIElement element, MenuState menuState){
+    bool answer = false;
+
+    visit([&](auto& ui) {
+        if (ui.group == ButtonGroup::StartPage) {
+            if(menuState == MenuState::StartMenu){
+                answer = true;
+                return;
+            }
+            else{
+                answer = false;
+                return;
+            }
+        }
+        if(ui.group == ButtonGroup::MainEditing){
+            if(menuState == MenuState::Editing){
+                answer = true;
+                return;
+            }
+            else {
+                answer = false;
+                return;
+            }
         }
         else{
-            return false;
+            answer = true;
+            return;
         }
-    }
-    else return true;
+    }, element);
+    return answer;
 }

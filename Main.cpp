@@ -24,6 +24,7 @@ using std::array;
 using std::vector;
 using std::sin;
 using std::cos;
+using std::variant;
 using std::unordered_map;
 
 using json = nlohmann::json;
@@ -35,11 +36,10 @@ bool StartSDL();
 bool StartSDLTTF();
 bool InitializeRoot(SDL_Window*& root, Size2D& windowSize);
 bool InitializeRenderer(SDL_Renderer*& renderer, SDL_Window* window);
+void InitializeUIButtons(vector<UIElement> &UIElements);
 
 void StartTransitions(const json jsonFileCurrentPage, Color &currentBgColor, Color &targetBgColor, float &bgColorInterpolateSpeed, float &screenShakeTimer, Vector2 &additionalViewportOffset, float &screenShakeDuration, 
    Vector2 &originalScreenShakeIntensity, float &screenShakeFrequency);
-
-void UpdateRenderVars(RenderVars &renderVars, const Vector2 editingViewportOffset, const MenuState menuState, Vector2 &additionalViewportOffset, SDL_Window* root);
 
 void UpdateRenderVars(RenderVars &renderVars, const Vector2 editingViewportOffset, const MenuState menuState, Vector2 &additionalViewportOffset, float editingViewportSizeModificationPx ,SDL_Window* root);
 
@@ -81,18 +81,7 @@ std::mt19937 generator(std::random_device{}()); // Initialize random seed gen
     unordered_map<string, unordered_map<int, TTF_Font*>> fonts; // font are cashed so that you don't have to remake the font every time you want to use it. This is better for preformance
     unordered_map<string, SDL_Texture*> images; 
 
-    vector<Button> UIButtons{{
-        ButtonFunc::StartEditing,
-        ButtonGroup::StartPage,
-        UIAnchor::Center,
-        Vector2{0, 0}, // offset
-        Size2D{-1, -1}, // pixel size
-        Vector2{0.3, 0.3}, // relative size
-        Color{70, 130, 220, 255},
-        true, // visible
-        true, // aspect preserved
-        false // is pressed
-    }};
+    vector<UIElement> UIElements; // the type is defined in UI.h
 
     int pageIndex = 0;
 
@@ -138,6 +127,8 @@ int main() // Runs once on startup
     
     if( !InitializeRoot(root, renderVars.windowSize) ) return 1;
     if( !InitializeRenderer(renderer, root) ) return 1;
+
+    InitializeUIButtons(UIElements);
 
     // MAIN LOOP
 
@@ -239,7 +230,7 @@ int main() // Runs once on startup
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        HandleButtons(renderVars, UIButtons, editorInput, menuState);
+        HandleUIElements(renderVars, UIElements, editorInput, menuState);
 
         if(menuState == MenuState::Viewing || menuState == MenuState::Editing) RenderViewRect(renderer, renderVars, currentBgColor);
 
@@ -247,7 +238,7 @@ int main() // Runs once on startup
 
         if(menuState == MenuState::Viewing || menuState == MenuState::Editing) RenderFile(memoryJson, pageIndex, renderer, renderVars, fonts, images);
         HandleMenu(renderer, renderVars, menuState, images, SDL_GetTicks());
-        RenderUIButtons(renderer, renderVars, UIButtons);
+        RenderUIButtons(renderer, renderVars, UIElements);
 
         SDL_RenderPresent(renderer);
 
@@ -327,7 +318,6 @@ void StartTransitions(const json jsonFileCurrentPage, Color &currentBgColor, Col
 void UpdateRenderVars(RenderVars &renderVars, const Vector2 editingViewportOffset, const MenuState menuState, Vector2 &additionalViewportOffset, float editingViewportSizeModificationPx ,SDL_Window* root){
 
     SDL_GetWindowSize(root, &renderVars.windowSize.width, &renderVars.windowSize.height);
-    cout << (menuState == MenuState::Editing) << endl;
     
     renderVars.canvasScaleFactor = Min(static_cast<float>(renderVars.windowSize.width) / renderVars.canvasSize.width, static_cast<float>(renderVars.windowSize.height) / renderVars.canvasSize.height);
 
@@ -339,12 +329,8 @@ void UpdateRenderVars(RenderVars &renderVars, const Vector2 editingViewportOffse
     else{
         renderVars.appliedViewportOffset = {0, 0};
     }
-    cout << renderVars.viewportSize.width << endl;
-    cout << renderVars.canvasScaleFactor << endl;
 
     renderVars.viewportSize = renderVars.canvasSize * renderVars.canvasScaleFactor;
-
-    cout << renderVars.appliedViewportOffset.y << endl;
 
     renderVars.appliedViewportOffset += (additionalViewportOffset * renderVars.windowSize); // because additional is in percentage
 }
@@ -383,7 +369,7 @@ bool InitializeRenderer(SDL_Renderer*& renderer, SDL_Window* window){
     else return true;
 }
 
-bool InitializeRoot(SDL_Window*& root, Size2D& windowSize){ // The *& by sdl window is because the * means a pointer and & means I want to edit the original
+bool InitializeRoot(SDL_Window*& root, Size2D& windowSize){ // The *& by sdl window is because the * means a pointer and & means I want to edit the original i think
 
     root = SDL_CreateWindow(
         "SlideshowMaker",
@@ -407,4 +393,21 @@ Size2D GetCanvasSize(const json memoryJson){
     auto canvas = memoryJson["canvas"];
 
     return Size2D{canvas["width"], canvas["height"]};
+}
+
+void InitializeUIButtons(vector<UIElement> &UIElements){
+    UIElements.push_back({
+        Button{
+            ButtonFunc::StartEditing,
+            ButtonGroup::StartPage,
+            UIProperties{
+                UIAnchor::Center,
+                Vector2{0, 0}, // offset
+                Size2D{-1, -1}, // pixel size
+                Vector2{0.3, 0.3}, // relative size
+                Color{70, 130, 220, 255}
+            },
+            false // is pressed
+        }
+    });
 }

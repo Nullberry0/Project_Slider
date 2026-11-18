@@ -18,6 +18,10 @@ using std::ifstream;
 using std::array;
 using std::vector;
 using std::unordered_map;
+using std::visit;
+using std::holds_alternative;
+using std::is_same_v;
+using std::decay_t;
 
 using json = nlohmann::json;
 
@@ -162,20 +166,22 @@ void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, Ren
     }
 }
 
-void RenderUIButtons(SDL_Renderer* renderer, RenderVars renderVars, vector<Button> buttons){
-    for(const auto &button : buttons){
-        if(button.visible)
-        {
-            Vector2 pos;
-            Size2D size;
-            ConvertUIToScreen(button.anchor, button.pixelOffset, button.relativeSize, button.pixelSize, button.preserveAspect, renderVars, pos, size);
+void RenderUIButtons(SDL_Renderer* renderer, RenderVars renderVars, vector<UIElement> UIElements){
+    for(const auto &element : UIElements){
+        visit([&](auto &ui){
+            if(ui.properties.visible)
+            {
+                Vector2 pos;
+                Size2D size;
+                ConvertUIToScreen(ui.properties.anchor, ui.properties.pixelOffset, ui.properties.relativeSize, ui.properties.pixelSize, renderVars, pos, size);
+                
+                SDL_FRect rect = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
 
-            SDL_FRect rect = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
-
-            if(button.isBeingPressed) SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-            else SDL_SetRenderDrawColor(renderer, button.color.r, button.color.g, button.color.b, 255);
-            SDL_RenderFillRect(renderer, &rect);
-        }
+                if(ui.isBeingPressed) SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                else SDL_SetRenderDrawColor(renderer, ui.properties.color.r, ui.properties.color.g, ui.properties.color.b, 255);
+                SDL_RenderFillRect(renderer, &rect);
+            }
+        }, element);
     }
 }
 
@@ -256,9 +262,12 @@ void ConvertCanvasToScreen(Size2D &size, Vector2 &pos, const RenderVars renderVa
     pos += renderVars.appliedViewportOffset; // Offset
 }
 
-void ConvertUIToScreen(UIAnchor anchor, Vector2 pixelOffset, Vector2 relativeSize, Size2D pixelSize, bool preserveAspect, RenderVars renderVars, Vector2 &pos, Size2D &size){
+void ConvertUIToScreen(UIAnchor anchor, Vector2 pixelOffset, Vector2 relativeSize, Size2D pixelSize, RenderVars renderVars, Vector2 &pos, Size2D &size){
     if(anchor == UIAnchor::Center){
         pos = renderVars.windowSize /2;
+    }
+    if(anchor == UIAnchor::TopCenter){
+        pos = {static_cast<float>(renderVars.windowSize.width /2), 0};
     }
     else{
         pos = renderVars.windowSize /2; // TEMPORARY
@@ -266,12 +275,7 @@ void ConvertUIToScreen(UIAnchor anchor, Vector2 pixelOffset, Vector2 relativeSiz
     pos += pixelOffset;
     
     if(pixelSize == Size2D{-1, -1}){
-        if(preserveAspect){
-            size = relativeSize * Min(renderVars.windowSize.width, renderVars.windowSize.height);
-        }
-        else{
-            size = relativeSize * renderVars.windowSize;
-        }
+        size = relativeSize * Min(renderVars.windowSize.width, renderVars.windowSize.height);
     }
     else{
         size = pixelSize;
