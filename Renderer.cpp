@@ -58,32 +58,9 @@ void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, 
             auto c = element["color"];
             Color color = {c[0].get<uint8_t>(), c[1].get<uint8_t>(), c[2].get<uint8_t>(), 255};
 
-            auto fontIt = fonts.find(element["fontSrc"].get<string>());
-
             int fontSize = static_cast<int>(element["fontSize"].get<float>() * renderVars.canvasScaleFactor);
 
-            TTF_Font* font;
-
-            if (fontIt != fonts.end()) {
-                auto sizeIt = fontIt->second.find(fontSize);
-
-                if (sizeIt != fontIt->second.end()) { // if the font size exists
-                    font = sizeIt->second;
-                }
-                else{
-                    font = TTF_OpenFont(element["fontSrc"].get<string>().c_str(), fontSize);
-                    fonts[element["fontSrc"].get<string>().c_str()][fontSize] = font;
-                }
-            } 
-            else{
-                font = TTF_OpenFont(element["fontSrc"].get<string>().c_str(), fontSize);
-                fonts[element["fontSrc"].get<string>().c_str()][fontSize] = font;
-            }
-
-            if (!font) {
-                cerr << "Yeah the font wouldn't load in the renderer" << SDL_GetError() << endl;
-                continue;
-            }
+            TTF_Font* font = GetFont(element["fontSrc"].get<string>(), fontSize, fonts);
 
             SDL_Color textColor = {color[0], color[1], color[2], 255};
 
@@ -169,7 +146,7 @@ void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, Ren
 void RenderUIButtons(SDL_Renderer* renderer, RenderVars renderVars, vector<UIElement> UIElements){
     for(const auto &element : UIElements){
         visit([&](auto &ui){
-            if(ui.properties.visible)
+            if(ui.properties.isVisible)
             {
                 Vector2 pos;
                 Size2D size;
@@ -269,6 +246,9 @@ void ConvertUIToScreen(UIAnchor anchor, Vector2 pixelOffset, Vector2 relativeSiz
     if(anchor == UIAnchor::TopCenter){
         pos = {static_cast<float>(renderVars.windowSize.width /2), 0};
     }
+    if(anchor == UIAnchor::TopLeft){
+        pos = {0, 0};
+    }
     else{
         pos = renderVars.windowSize /2; // TEMPORARY
     }
@@ -282,4 +262,32 @@ void ConvertUIToScreen(UIAnchor anchor, Vector2 pixelOffset, Vector2 relativeSiz
     }
 
     pos -= size/2;
+}
+
+TTF_Font* GetFont(string src, int fontSize, unordered_map<string, unordered_map<int, TTF_Font*>> &fonts){
+    TTF_Font* font;
+
+    auto fontIt = fonts.find(src);
+
+    if (fontIt != fonts.end()) {
+        auto sizeIt = fontIt->second.find(fontSize);
+
+        if (sizeIt != fontIt->second.end()) { // if the font size exists
+            font = sizeIt->second;
+        }
+        else{
+            font = TTF_OpenFont(src.c_str(), fontSize);
+            fonts[src.c_str()][fontSize] = font;
+        }
+    } 
+    else{
+        font = TTF_OpenFont(src.c_str(), fontSize);
+        fonts[src.c_str()][fontSize] = font;
+    }
+
+    if (!font) {
+        cerr << "Yeah the font couldnt be find or made" << SDL_GetError() << endl;
+        return nullptr;
+    }
+    return font;
 }

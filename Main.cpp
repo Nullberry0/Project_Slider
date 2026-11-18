@@ -407,6 +407,42 @@ void InitializeUIButtons(vector<UIElement> &UIElements){
                 Vector2{0.3, 0.3}, // relative size
                 Color{70, 130, 220, 255}
             },
+            "Start",
+            false // is pressed
+        }
+    });
+    UIElements.push_back({
+        Dropdown{
+            {
+                DropdownOption{
+                    ButtonFunc::InsertRect,
+                    "Insert Rectangle",
+                    Color{
+                        150, 200, 50, 255
+                    },
+                    false,
+                    true
+                },
+                DropdownOption{
+                    ButtonFunc::InsertHelloWorldText,
+                    "Insert 'Hello World'",
+                    Color{
+                        250, 50, 25, 255
+                    },
+                    false,
+                    true
+                }
+            },
+            ButtonGroup::MainEditing,
+            UIProperties{
+                UIAnchor::TopLeft,
+                Vector2{300, 50}, // offset
+                Size2D{100, 50}, // pixel size
+                Vector2{0, 0}, // relative size
+                Color{255, 255, 255, 255}
+            },
+            0, // index
+            false, // is open
             false // is pressed
         }
     });

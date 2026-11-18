@@ -19,7 +19,7 @@ void HandleUIElements(RenderVars renderVars, vector<UIElement> &UIElements, Inpu
     for(auto &element: UIElements){
         visit([&](auto &ui) {
             if(ButtonVisibility(element, menuState) == true){
-                ui.properties.visible = true;
+                ui.properties.isVisible = true;
                 Vector2 pos;
                 Size2D size;
                 ConvertUIToScreen(ui.properties.anchor, ui.properties.pixelOffset, ui.properties.relativeSize, ui.properties.pixelSize, renderVars, pos, size);
@@ -48,7 +48,7 @@ void HandleUIElements(RenderVars renderVars, vector<UIElement> &UIElements, Inpu
                 }
             }
             else{
-                ui.properties.visible = false;
+                ui.properties.isVisible = false;
             }
         }, element);
     }

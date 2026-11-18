@@ -20,7 +20,8 @@ enum class MenuState{
 
 enum class ButtonFunc{
     StartEditing,
-    InsertRect
+    InsertRect,
+    InsertHelloWorldText
 };
 enum class ButtonGroup{
     StartPage,
@@ -47,7 +48,7 @@ struct UIProperties {
 
     Color color;
 
-    bool visible = true;
+    bool isVisible = true;
 };
 
 struct Button {
@@ -57,11 +58,21 @@ struct Button {
 
     UIProperties properties;
 
+    string text;
+
     bool isBeingPressed = false; // This is for displaying a different version of the button while it is being pressed
 };
 
+struct DropdownOption {
+    ButtonFunc func;
+    string text;
+    Color color;
+    bool isBeingPressed;
+    bool isVisible;
+};
+
 struct Dropdown {
-    vector<ButtonFunc> options;
+    vector<DropdownOption> options;
 
     ButtonGroup group;
 
@@ -72,6 +83,8 @@ struct Dropdown {
     bool isOpen = false;
 
     bool isBeingPressed = false; // This is for displaying a different version of the button while it is being pressed
+
+    bool isVisible = true;
 };
 
 using UIElement = variant<Button, Dropdown>; // so that different types of UI can still be in the same list

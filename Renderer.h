@@ -34,3 +34,5 @@ MenuState RenderMenu(SDL_Renderer* renderer, RenderVars renderVars, MenuState me
 
 void RenderUIButtons(SDL_Renderer* renderer, RenderVars renderVars, vector<UIElement> UIElements);
 void ConvertUIToScreen(UIAnchor anchor, Vector2 pixelOffset, Vector2 relativeSize, Size2D pixelSize, RenderVars renderVars, Vector2 &pos, Size2D &size);
+
+TTF_Font* GetFont(string src, int fontSize, unordered_map<string, unordered_map<int, TTF_Font*>> &fonts);
