@@ -145,19 +145,26 @@ void RenderUIButtons(SDL_Renderer* renderer, RenderVars renderVars, vector<UIEle
                 if constexpr (is_same_v<decay_t<decltype(ui)>, Dropdown>) {
                     if(ui.isOpen){
                         Vector2 drawPos = pos;
+                        drawPos.x += size.width/2;
                         drawPos.y += size.height/2; // finds the bottom
                         for(size_t i = 0; i < ui.options.size(); i++){ // loops through each option to draw it
                             DropdownOption option = ui.options.at(i);
                             
                             drawPos.y += ui.distBetweenOptions; // now at the top of the option we want to draw             
                             drawPos.y += option.size.height /2;
+
+                            drawPos.x -= option.size.width/2;
                             
+
                             SDL_FRect rect = {drawPos.x, drawPos.y, static_cast<float>(option.size.width), static_cast<float>(option.size.height)};
-
-                            drawPos.y += option.size.height /2; // if you do the math you will see that this is needed
-
                             SDL_SetRenderDrawColor(renderer, option.color.r, option.color.g, option.color.b, 255);
                             SDL_RenderFillRect(renderer, &rect);
+
+                            drawPos.x += option.size.width/2;
+                            drawPos.y += option.size.height /2; // if you do the math you will see that this is needed
+
+                            RenderText(renderer, option.text, "SlideshowFiles/Fonts/font1.ttf", option.fontSize, fonts, Color{0, 0, 0}, drawPos);
+
                         }
                     }
                 }
@@ -274,7 +281,7 @@ int GetPageCount(const json jsonFile){
 }
 
 void ConvertCanvasToScreen(Size2D &size, Vector2 &pos, const RenderVars renderVars, const bool changeSize){
-    // THIS RETURNS THE CENTER OF THE OBJECT
+    // THIS RETURNS THE LEFT TOP CORNER
 
     if(changeSize) size = size / renderVars.canvasSize * renderVars.viewportSize;
 
@@ -283,6 +290,8 @@ void ConvertCanvasToScreen(Size2D &size, Vector2 &pos, const RenderVars renderVa
 }
 
 void ConvertUIToScreen(UIAnchor anchor, Vector2 pixelOffset, Vector2 relativeSize, Size2D pixelSize, RenderVars renderVars, Vector2 &pos, Size2D &size){
+    // THIS RETURNS THE LEFT TOP CORNER
+
     if(anchor == UIAnchor::Center){
         pos = renderVars.windowSize /2;
     }

@@ -422,7 +422,7 @@ void InitializeUIButtons(vector<UIElement> &UIElements){
                         0, 200, 80, 255
                     },
                     Size2D{
-                        100, 50
+                        260, 50
                     },
                     24,
                     Color{
@@ -435,10 +435,10 @@ void InitializeUIButtons(vector<UIElement> &UIElements){
                     ButtonFunc::InsertHelloWorldText,
                     "Insert 'Hello World'",
                     Color{
-                        0, 200, 80, 255
+                        0, 200, 80, 255 // text color
                     },
                     Size2D{
-                        100, 50
+                        320, 50
                     },
                     24,
                     Color{
@@ -459,7 +459,7 @@ void InitializeUIButtons(vector<UIElement> &UIElements){
             0, // index
             false, // is open
             20, // distance between options
-            "",
+            "Insert",
             24, // font size
             false // is pressed
         }
