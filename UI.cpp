@@ -30,14 +30,18 @@ void HandleUIElements(RenderVars renderVars, vector<UIElement> &UIElements, Inpu
                     else{
                         ui.isBeingPressed = false;
                     }
-                    if constexpr (is_same_v<decay_t<decltype(ui)>, Button>) { // only compile if, decay_t removes the & so button& becomes button
-                        if(inputState.leftMouse == MouseState::Released){
+                    
+                    if(inputState.leftMouse == MouseState::Released){
+                        if constexpr (is_same_v<decay_t<decltype(ui)>, Button>) { // only compile if, decay_t removes the & so button& becomes button
                             if(ui.func == ButtonFunc::StartEditing){
                                 menuState = MenuState::Editing;
                             }
                             if(ui.func == ButtonFunc::InsertRect){
                                 // insert a rect here;
-                            }
+                            }     
+                        }
+                        else if constexpr (is_same_v<decay_t<decltype(ui)>, Dropdown>){
+                            ui.isOpen = !ui.isOpen;
                         }
                     }
                 }

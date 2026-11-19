@@ -53,44 +53,21 @@ void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, 
 
         }
         else if(type == "text"){
-            
             string content = element["content"].get<string>();
+
             auto c = element["color"];
             Color color = {c[0].get<uint8_t>(), c[1].get<uint8_t>(), c[2].get<uint8_t>(), 255};
 
             int fontSize = static_cast<int>(element["fontSize"].get<float>() * renderVars.canvasScaleFactor);
 
-            TTF_Font* font = GetFont(element["fontSrc"].get<string>(), fontSize, fonts);
+            Size2D size = {0, 0};
 
-            SDL_Color textColor = {color[0], color[1], color[2], 255};
+            string fontSrc = element["fontSrc"].get<string>();
 
-            SDL_Surface* surface = TTF_RenderText_Blended( // This function renders the wanted text onto a surface
-                font,
-                content.c_str(), // This turns the string we want to render into a c string which the function can read
-                0, // Automatically calculate the size in pixels of the text
-                textColor
-            );
- 
-            if (surface) {
+            ConvertCanvasToScreen(size, pos, renderVars, false);
 
-                SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-                if (texture) {
+            RenderText(renderer, content, fontSrc, fontSize, fonts, color, pos);
 
-                    Size2D size{surface->w, surface->h}; // Gets the width of the surface in pixels
-
-                    // size does not need adjusting because the font is already changed on the font initialize line
-
-                    ConvertCanvasToScreen(size, pos, renderVars, false);
-
-                    SDL_FRect destination = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
-
-                    SDL_RenderTexture(renderer, texture, nullptr, &destination);
-                    SDL_DestroyTexture(texture);
-
-                }
-
-                SDL_DestroySurface(surface);
-            }
         }
         else if(type == "image"){
             SDL_Texture* imageTexture = GetImage(element["src"].get<string>(), images, renderer);
@@ -117,7 +94,7 @@ void RenderViewRect(SDL_Renderer* renderer, RenderVars renderVars, Color bgColor
     SDL_RenderRect(renderer, &rect);
 }
 
-void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, RenderVars renderVars, std::unordered_map<uint64_t, Vector2> selectedElementOffsets){
+void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, RenderVars renderVars, unordered_map<uint64_t, Vector2> selectedElementOffsets){
 
     SDL_SetRenderDrawColor(renderer, 23, 82, 112, 255);
 
@@ -143,7 +120,7 @@ void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, Ren
     }
 }
 
-void RenderUIButtons(SDL_Renderer* renderer, RenderVars renderVars, vector<UIElement> UIElements){
+void RenderUIButtons(SDL_Renderer* renderer, RenderVars renderVars, vector<UIElement> UIElements, unordered_map<string, unordered_map<int, TTF_Font*>> &fonts){
     for(const auto &element : UIElements){
         visit([&](auto &ui){
             if(ui.properties.isVisible)
@@ -154,13 +131,77 @@ void RenderUIButtons(SDL_Renderer* renderer, RenderVars renderVars, vector<UIEle
                 
                 SDL_FRect rect = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
 
-                if(ui.isBeingPressed) SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                if(ui.isBeingPressed) SDL_SetRenderDrawColor(renderer, 190, 119, 43, 255);
                 else SDL_SetRenderDrawColor(renderer, ui.properties.color.r, ui.properties.color.g, ui.properties.color.b, 255);
                 SDL_RenderFillRect(renderer, &rect);
+
+                if(ui.text != ""){
+                    int fontSize = ui.fontSize;
+                    if(ui.properties.pixelSize == Size2D{-1, -1}){
+                        fontSize *= renderVars.canvasScaleFactor;
+                    }
+                    RenderText(renderer, ui.text, "SlideshowFiles/Fonts/font1.ttf", fontSize, fonts, Color{0, 0, 0}, pos + size/2);
+                }
+                if constexpr (is_same_v<decay_t<decltype(ui)>, Dropdown>) {
+                    if(ui.isOpen){
+                        Vector2 drawPos = pos;
+                        drawPos.y += size.height/2; // finds the bottom
+                        for(size_t i = 0; i < ui.options.size(); i++){ // loops through each option to draw it
+                            DropdownOption option = ui.options.at(i);
+                            
+                            drawPos.y += ui.distBetweenOptions; // now at the top of the option we want to draw             
+                            drawPos.y += option.size.height /2;
+                            
+                            SDL_FRect rect = {drawPos.x, drawPos.y, static_cast<float>(option.size.width), static_cast<float>(option.size.height)};
+
+                            drawPos.y += option.size.height /2; // if you do the math you will see that this is needed
+
+                            SDL_SetRenderDrawColor(renderer, option.color.r, option.color.g, option.color.b, 255);
+                            SDL_RenderFillRect(renderer, &rect);
+                        }
+                    }
+                }
             }
         }, element);
     }
 }
+
+void RenderText(SDL_Renderer* renderer, string content, string src, int fontSize, unordered_map<string, unordered_map<int, TTF_Font*>> &fonts, Color color, Vector2 pos){
+    TTF_Font* font = GetFont(src, fontSize, fonts);
+
+    SDL_Color textColor = {color[0], color[1], color[2], 255};
+
+    SDL_Surface* surface = TTF_RenderText_Blended( // This function renders the wanted text onto a surface
+        font,
+        content.c_str(), // This turns the string we want to render into a c string which the function can read
+        0, // Automatically calculate the size in pixels of the text
+        textColor
+    );
+
+    if (surface) {
+
+        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+        if (texture) {
+
+            Size2D size{surface->w, surface->h}; // Gets the width of the surface in pixels
+
+            pos -= size/2;
+
+            // size does not need adjusting because the font is already changed on the font initialize line
+
+            SDL_FRect destination = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
+
+            SDL_RenderTexture(renderer, texture, nullptr, &destination);
+            SDL_DestroyTexture(texture);
+
+        }
+
+        SDL_DestroySurface(surface);
+    }
+    else{
+        cout << "No Surface Made For Rendering Text!" << SDL_GetError() << endl;
+    }
+} 
 
 MenuState RenderMenu(SDL_Renderer* renderer, RenderVars renderVars, MenuState menuState, unordered_map<string, SDL_Texture*> &images, Uint32 ticks){
 
@@ -233,6 +274,8 @@ int GetPageCount(const json jsonFile){
 }
 
 void ConvertCanvasToScreen(Size2D &size, Vector2 &pos, const RenderVars renderVars, const bool changeSize){
+    // THIS RETURNS THE CENTER OF THE OBJECT
+
     if(changeSize) size = size / renderVars.canvasSize * renderVars.viewportSize;
 
     pos = ((renderVars.windowSize - renderVars.viewportSize)/2) + pos / renderVars.canvasSize * renderVars.viewportSize - (size /2); //The part in the beginning is so that the middle is relative to the view rect

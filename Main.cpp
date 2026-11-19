@@ -238,7 +238,7 @@ int main() // Runs once on startup
 
         if(menuState == MenuState::Viewing || menuState == MenuState::Editing) RenderFile(memoryJson, pageIndex, renderer, renderVars, fonts, images);
         HandleMenu(renderer, renderVars, menuState, images, SDL_GetTicks());
-        RenderUIButtons(renderer, renderVars, UIElements);
+        RenderUIButtons(renderer, renderVars, UIElements, fonts);
 
         SDL_RenderPresent(renderer);
 
@@ -396,7 +396,7 @@ Size2D GetCanvasSize(const json memoryJson){
 }
 
 void InitializeUIButtons(vector<UIElement> &UIElements){
-    UIElements.push_back({
+    UIElements.push_back({ // START BUTTON
         Button{
             ButtonFunc::StartEditing,
             ButtonGroup::StartPage,
@@ -408,15 +408,23 @@ void InitializeUIButtons(vector<UIElement> &UIElements){
                 Color{70, 130, 220, 255}
             },
             "Start",
+            48,
             false // is pressed
         }
     });
-    UIElements.push_back({
+    UIElements.push_back({ // MAIN INSERT SHAPE DROPDOWN
         Dropdown{
             {
                 DropdownOption{
                     ButtonFunc::InsertRect,
                     "Insert Rectangle",
+                    Color{
+                        0, 200, 80, 255
+                    },
+                    Size2D{
+                        100, 50
+                    },
+                    24,
                     Color{
                         150, 200, 50, 255
                     },
@@ -426,6 +434,13 @@ void InitializeUIButtons(vector<UIElement> &UIElements){
                 DropdownOption{
                     ButtonFunc::InsertHelloWorldText,
                     "Insert 'Hello World'",
+                    Color{
+                        0, 200, 80, 255
+                    },
+                    Size2D{
+                        100, 50
+                    },
+                    24,
                     Color{
                         250, 50, 25, 255
                     },
@@ -443,6 +458,9 @@ void InitializeUIButtons(vector<UIElement> &UIElements){
             },
             0, // index
             false, // is open
+            20, // distance between options
+            "",
+            24, // font size
             false // is pressed
         }
     });

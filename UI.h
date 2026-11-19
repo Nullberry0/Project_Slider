@@ -58,7 +58,8 @@ struct Button {
 
     UIProperties properties;
 
-    string text;
+    string text = "";
+    int fontSize = 22;
 
     bool isBeingPressed = false; // This is for displaying a different version of the button while it is being pressed
 };
@@ -66,9 +67,12 @@ struct Button {
 struct DropdownOption {
     ButtonFunc func;
     string text;
+    Color textColor;
+    Size2D size;
+    int fontSize = 22;
     Color color;
-    bool isBeingPressed;
-    bool isVisible;
+    bool isBeingPressed = false;
+    bool isVisible = true; // if this is true but the dropdown is closed it will not show
 };
 
 struct Dropdown {
@@ -81,6 +85,10 @@ struct Dropdown {
     int selectedIndex = 0; // 0 is the top one, 1 is the second top one etc.
 
     bool isOpen = false;
+    int distBetweenOptions = 30; // in pixels, distance between closest points
+
+    string text = "";
+    int fontSize = 22;
 
     bool isBeingPressed = false; // This is for displaying a different version of the button while it is being pressed
 
