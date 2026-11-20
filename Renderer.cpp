@@ -133,7 +133,7 @@ void RenderUIButtons(SDL_Renderer* renderer, RenderVars renderVars, vector<UIEle
 
                 if(ui.isBeingPressed) SDL_SetRenderDrawColor(renderer, 190, 119, 43, 255);
                 else SDL_SetRenderDrawColor(renderer, ui.properties.color.r, ui.properties.color.g, ui.properties.color.b, 255);
-                SDL_RenderFillRect(renderer, &rect);
+                RenderRoundedRect(renderer, rect, renderVars, 10);
 
                 if(ui.text != ""){
                     int fontSize = ui.fontSize;
@@ -171,6 +171,52 @@ void RenderUIButtons(SDL_Renderer* renderer, RenderVars renderVars, vector<UIEle
             }
         }, element);
     }
+}
+
+void RenderRoundedRect(SDL_Renderer* renderer, SDL_FRect rect, RenderVars renderVars, float roundness){
+    SDL_RenderFillRect(renderer, &rect);
+    RenderCircle(renderer, Vector2{500, 500}, 80);
+}
+
+void RenderCircle(SDL_Renderer* renderer, Vector2 pos, int radius){
+
+    // not gonna pretend to know how this works...
+
+    Uint8 r, g, b, a;
+    SDL_GetRenderDrawColor(renderer, &r, &g, &b, &a);
+
+    SDL_FColor color = {
+        r / 255.0f,
+        g / 255.0f,
+        b / 255.0f,
+        a / 255.0f
+    };
+
+    const int segments = 32;
+    const float PI = 3.1415f;
+
+    vector<SDL_Vertex> vertices;
+
+    for (int i = 0; i < segments; i++) {
+        float angle1 = 2.0f * PI * i / segments;
+        float angle2 = 2.0f * PI * (i + 1) / segments;
+
+        vertices.push_back(
+            {{pos.x, pos.y}, color, {0, 0}}
+        );
+
+        vertices.push_back(
+            {{pos.x + cosf(angle1) * radius, pos.y + sinf(angle1) * radius}, color, {0, 0}}
+        );
+
+        vertices.push_back(
+            {{pos.x + cosf(angle2) * radius, pos.y + sinf(angle2) * radius}, color, {0, 0}}
+        );
+
+    }
+
+    SDL_RenderGeometry(renderer, nullptr, vertices.data(), vertices.size(), nullptr, 0);
+
 }
 
 void RenderText(SDL_Renderer* renderer, string content, string src, int fontSize, unordered_map<string, unordered_map<int, TTF_Font*>> &fonts, Color color, Vector2 pos){

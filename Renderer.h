@@ -32,6 +32,9 @@ bool IsPointInBox(Vector2 pos1, Vector2 pos2, Vector2 point);
 
 MenuState RenderMenu(SDL_Renderer* renderer, RenderVars renderVars, MenuState menuState, unordered_map<string, SDL_Texture*> &images, Uint32 ticks);
 
+void RenderRoundedRect(SDL_Renderer* renderer, SDL_FRect rect, RenderVars renderVars, float roundness);
+void RenderCircle(SDL_Renderer* renderer, Vector2 pos, int radius);
+
 void RenderUIButtons(SDL_Renderer* renderer, RenderVars renderVars, vector<UIElement> UIElements, unordered_map<string, unordered_map<int, TTF_Font*>> &fonts);
 void ConvertUIToScreen(UIAnchor anchor, Vector2 pixelOffset, Vector2 relativeSize, Size2D pixelSize, RenderVars renderVars, Vector2 &pos, Size2D &size);
 
