@@ -133,7 +133,7 @@ void RenderUIButtons(SDL_Renderer* renderer, RenderVars renderVars, vector<UIEle
 
                 if(ui.isBeingPressed) SDL_SetRenderDrawColor(renderer, 190, 119, 43, 255);
                 else SDL_SetRenderDrawColor(renderer, ui.properties.color.r, ui.properties.color.g, ui.properties.color.b, 255);
-                RenderRoundedRect(renderer, rect, renderVars, 10);
+                RenderRoundedRect(renderer, rect, 0.3);
 
                 if(ui.text != ""){
                     int fontSize = ui.fontSize;
@@ -158,7 +158,7 @@ void RenderUIButtons(SDL_Renderer* renderer, RenderVars renderVars, vector<UIEle
 
                             SDL_FRect rect = {drawPos.x, drawPos.y, static_cast<float>(option.size.width), static_cast<float>(option.size.height)};
                             SDL_SetRenderDrawColor(renderer, option.color.r, option.color.g, option.color.b, 255);
-                            SDL_RenderFillRect(renderer, &rect);
+                            RenderRoundedRect(renderer, rect, 0.3);
 
                             drawPos.x += option.size.width/2;
                             drawPos.y += option.size.height /2; // if you do the math you will see that this is needed
@@ -173,9 +173,22 @@ void RenderUIButtons(SDL_Renderer* renderer, RenderVars renderVars, vector<UIEle
     }
 }
 
-void RenderRoundedRect(SDL_Renderer* renderer, SDL_FRect rect, RenderVars renderVars, float roundness){
-    SDL_RenderFillRect(renderer, &rect);
-    RenderCircle(renderer, Vector2{500, 500}, 80);
+void RenderRoundedRect(SDL_Renderer* renderer, SDL_FRect rect, float roundness){
+
+    float renderRoundness = roundness * Min(rect.w, rect.h) /2 ;
+
+
+    RenderCircle(renderer, Vector2{rect.x + renderRoundness, rect.y + renderRoundness}, renderRoundness); // top left
+    RenderCircle(renderer, Vector2{rect.x + rect.w - renderRoundness, rect.y + renderRoundness}, renderRoundness); // top right
+
+    RenderCircle(renderer, Vector2{rect.x + renderRoundness, rect.y + rect.h - renderRoundness}, renderRoundness); // bottom left
+    RenderCircle(renderer, Vector2{rect.x + rect.w - renderRoundness, rect.y + rect.h - renderRoundness}, renderRoundness); // bottom right
+
+    SDL_FRect box = {rect.x, rect.y + renderRoundness, rect.w, rect.h - renderRoundness*2};
+    SDL_RenderFillRect(renderer, &box);
+
+    box = {rect.x + renderRoundness, rect.y, rect.w - renderRoundness*2, rect.h};
+    SDL_RenderFillRect(renderer, &box);
 }
 
 void RenderCircle(SDL_Renderer* renderer, Vector2 pos, int radius){
