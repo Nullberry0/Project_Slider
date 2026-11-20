@@ -19,13 +19,49 @@ void HandleUIElements(RenderVars renderVars, vector<UIElement> &UIElements, Inpu
     for(auto &element: UIElements){
         visit([&](auto &ui) {
             if(ButtonVisibility(element, menuState) == true){
+
                 ui.properties.isVisible = true;
                 Vector2 pos;
                 Size2D size;
                 ConvertUIToScreen(ui.properties.anchor, ui.properties.pixelOffset, ui.properties.relativeSize, ui.properties.pixelSize, renderVars, pos, size);
+
+                if constexpr (is_same_v<decay_t<decltype(ui)>, Dropdown>){
+                    if(ui.isOpen){
+                        Vector2 checkPos = pos;
+                        checkPos.x += size.width/2;
+                        checkPos.y += size.height/2; // finds the bottom
+                        for(size_t i = 0; i < ui.options.size(); i++){ // loops through each option to draw it
+                            DropdownOption &option = ui.options.at(i);
+                            
+                            checkPos.y += ui.distBetweenOptions; // now at the top of the option we want to draw             
+                            checkPos.y += option.size.height /2;
+
+                            checkPos.x -= option.size.width/2;
+
+                            if(IsPointInBox(checkPos, checkPos + option.size, inputState.mousePos)){
+                                if(inputState.leftMouse == MouseState::Pressed || inputState.leftMouse == MouseState::Holding){
+                                    if(inputState.leftMouse == MouseState::Pressed){
+                                        option.isBeingPressed = true;
+                                    }
+                                }
+                                else option.isBeingPressed = false;
+                            }
+                            else{
+                                if(inputState.leftMouse == MouseState::Released){
+                                    option.isBeingPressed = false;
+                                }
+                            }
+
+                            checkPos.x += option.size.width/2;
+                            checkPos.y += option.size.height /2; // if you do the math you will see that this is needed
+                        }
+                    }
+                }
                 if(IsPointInBox(pos, pos + size, inputState.mousePos)){
-                    if(inputState.leftMouse == MouseState::Pressed || inputState.leftMouse == MouseState::Holding ){
-                        ui.isBeingPressed = true;
+                    if((inputState.leftMouse == MouseState::Pressed || inputState.leftMouse == MouseState::Holding)){
+                        if(inputState.leftMouse == MouseState::Pressed){
+                            ui.isBeingPressed = true;
+                        }
                     }
                     else{
                         ui.isBeingPressed = false;
@@ -44,6 +80,7 @@ void HandleUIElements(RenderVars renderVars, vector<UIElement> &UIElements, Inpu
                             ui.isOpen = !ui.isOpen;
                         }
                     }
+                    
                 }
                 else{
                     if(inputState.leftMouse == MouseState::Released){

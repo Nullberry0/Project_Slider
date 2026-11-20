@@ -157,7 +157,12 @@ void RenderUIButtons(SDL_Renderer* renderer, RenderVars renderVars, vector<UIEle
                             
 
                             SDL_FRect rect = {drawPos.x, drawPos.y, static_cast<float>(option.size.width), static_cast<float>(option.size.height)};
-                            SDL_SetRenderDrawColor(renderer, option.color.r, option.color.g, option.color.b, 255);
+                            if(option.isBeingPressed == true){
+                                SDL_SetRenderDrawColor(renderer, 190, 119, 43, 255);
+                            }
+                            else{
+                                SDL_SetRenderDrawColor(renderer, option.color.r, option.color.g, option.color.b, 255);
+                            }
                             RenderRoundedRect(renderer, rect, 0.3);
 
                             drawPos.x += option.size.width/2;
