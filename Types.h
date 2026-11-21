@@ -5,6 +5,9 @@
 #include <utility>
 
 using std::uint8_t;
+using std::string;
+using std::vector;
+using std::variant;
 
 struct Size2D; 
 
@@ -248,4 +251,49 @@ struct RenderVars
     Vector2 appliedViewportOffset{};
     float canvasScaleFactor;
 };
+
+struct ElementBasics{
+    int id = -1; 
+    Vector2 pos;
+    Size2D size;
+    Color color; // add rotation later
+};
+
+struct RectElement{
+    ElementBasics basics;
+    float roundness;
+};
+
+struct TextElement{
+    ElementBasics basics;
+    string content = "";
+    string fontSrc = "";
+    int fontSize = 10;
+};
+
+struct ImageElement{
+    ElementBasics basics;
+    string imagesSrc = "";
+};
+
+struct SlideTransition_InterpolateBgColor{
+    float speed;
+};
+
+struct SlideTransition_ScreenShake{
+    float intensity =5;
+    float duration = 0.3f;
+    int frequency = 80;
+};
+
+using FileElement = variant<RectElement, ImageElement, TextElement>; 
+using SlideTransition = variant<SlideTransition_InterpolateBgColor, SlideTransition_ScreenShake>;
+
+struct Slide{
+    vector<FileElement> fileElements;
+    vector<SlideTransition> transitions;
+    Color bgColor;
+};
+
+
 

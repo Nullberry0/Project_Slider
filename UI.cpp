@@ -45,6 +45,9 @@ void HandleUIElements(RenderVars renderVars, vector<UIElement> &UIElements, Inpu
                                     }
                                 }
                                 else option.isBeingPressed = false;
+                                if(inputState.leftMouse == MouseState::Released){
+                                    // insert rect here;
+                                }
                             }
                             else{
                                 if(inputState.leftMouse == MouseState::Released){
@@ -72,9 +75,6 @@ void HandleUIElements(RenderVars renderVars, vector<UIElement> &UIElements, Inpu
                             if(ui.func == ButtonFunc::StartEditing){
                                 menuState = MenuState::Editing;
                             }
-                            if(ui.func == ButtonFunc::InsertRect){
-                                // insert a rect here;
-                            }     
                         }
                         else if constexpr (is_same_v<decay_t<decltype(ui)>, Dropdown>){
                             ui.isOpen = !ui.isOpen;

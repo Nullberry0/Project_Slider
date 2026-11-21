@@ -82,6 +82,7 @@ std::mt19937 generator(std::random_device{}()); // Initialize random seed gen
     unordered_map<string, SDL_Texture*> images; 
 
     vector<UIElement> UIElements; // the type is defined in UI.h
+    vector<FileElement> FileElements; // the type is defined in Types.h
 
     int pageIndex = 0;
 
@@ -395,6 +396,10 @@ Size2D GetCanvasSize(const json memoryJson){
     return Size2D{canvas["width"], canvas["height"]};
 }
 
+bool InitializeFileElements(vector<FileElement> &fileElements){
+    
+}
+
 void InitializeUIButtons(vector<UIElement> &UIElements){
     UIElements.push_back({ // START BUTTON
         Button{
@@ -417,12 +422,12 @@ void InitializeUIButtons(vector<UIElement> &UIElements){
             {
                 DropdownOption{
                     ButtonFunc::InsertRect,
-                    "Insert Rectangle",
+                    "Rectangle",
                     Color{
                         0, 200, 80, 255
                     },
                     Size2D{
-                        260, 50
+                        170, 50
                     },
                     24,
                     Color{
@@ -433,12 +438,12 @@ void InitializeUIButtons(vector<UIElement> &UIElements){
                 },
                 DropdownOption{
                     ButtonFunc::InsertHelloWorldText,
-                    "Insert 'Hello World'",
+                    "'Hello World'",
                     Color{
                         0, 200, 80, 255 // text color
                     },
                     Size2D{
-                        320, 50
+                        200, 50
                     },
                     24,
                     Color{
