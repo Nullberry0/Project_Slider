@@ -37,6 +37,7 @@ bool StartSDLTTF();
 bool InitializeRoot(SDL_Window*& root, Size2D& windowSize);
 bool InitializeRenderer(SDL_Renderer*& renderer, SDL_Window* window);
 void InitializeUIButtons(vector<UIElement> &UIElements);
+void InitializeSlideshow(vector<Slide> &slideshow, json &jsonFile, int pageCount);
 
 void StartTransitions(const json jsonFileCurrentPage, Color &currentBgColor, Color &targetBgColor, float &bgColorInterpolateSpeed, float &screenShakeTimer, Vector2 &additionalViewportOffset, float &screenShakeDuration, 
    Vector2 &originalScreenShakeIntensity, float &screenShakeFrequency);
@@ -130,6 +131,7 @@ int main() // Runs once on startup
     if( !InitializeRenderer(renderer, root) ) return 1;
 
     InitializeUIButtons(UIElements);
+    InitializeSlideshow(slideshow, memoryJson, pageCount);
 
     // MAIN LOOP
 
@@ -396,19 +398,21 @@ Size2D GetCanvasSize(const json memoryJson){
     return Size2D{canvas["width"], canvas["height"]};
 }
 
-void InitializeFileElements(vector<Slide> &slideshow, json &jsonFile, int pageCount){
+void InitializeSlideshow(vector<Slide> &slideshow, json &jsonFile, int pageCount){
     slideshow = {};
-    for(int i = 0; i < pageCount; i++){
+
+    for(int i = 0; i < pageCount - 1; i++){
         Slide currentSlide;
         currentSlide.bgColor = Color{
             jsonFile["pages"][i]["bgColor"][0].get<uint8_t>(), 
             jsonFile["pages"][i]["bgColor"][1].get<uint8_t>(), 
             jsonFile["pages"][i]["bgColor"][2].get<uint8_t>(), 
-            jsonFile["pages"][i]["bgColor"][3].get<uint8_t>()
+            255
         };
 
         auto transitions = jsonFile["pages"][i]["slideTransitions"];
         for (const auto& transition : transitions){
+
             string transitionType = transition["type"].get<string>();
 
             if(transitionType == "InterpolateBgColor"){
@@ -444,6 +448,7 @@ void InitializeFileElements(vector<Slide> &slideshow, json &jsonFile, int pageCo
                     element["color"][3].get<uint8_t>()
                 }
             };
+
             if(elementType == "rect"){
                 currentSlide.fileElements.push_back({
                     RectElement{
@@ -470,8 +475,11 @@ void InitializeFileElements(vector<Slide> &slideshow, json &jsonFile, int pageCo
                     }
                 });
             }
+
         }
+
         slideshow.push_back(currentSlide);
+
     }
 }
 
