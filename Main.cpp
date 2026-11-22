@@ -82,7 +82,7 @@ std::mt19937 generator(std::random_device{}()); // Initialize random seed gen
     unordered_map<string, SDL_Texture*> images; 
 
     vector<UIElement> UIElements; // the type is defined in UI.h
-    vector<FileElement> FileElements; // the type is defined in Types.h
+    vector<Slide> slideshow; // the type is defined in Types.h
 
     int pageIndex = 0;
 
@@ -396,8 +396,83 @@ Size2D GetCanvasSize(const json memoryJson){
     return Size2D{canvas["width"], canvas["height"]};
 }
 
-bool InitializeFileElements(vector<FileElement> &fileElements){
-    
+void InitializeFileElements(vector<Slide> &slideshow, json &jsonFile, int pageCount){
+    slideshow = {};
+    for(int i = 0; i < pageCount; i++){
+        Slide currentSlide;
+        currentSlide.bgColor = Color{
+            jsonFile["pages"][i]["bgColor"][0].get<uint8_t>(), 
+            jsonFile["pages"][i]["bgColor"][1].get<uint8_t>(), 
+            jsonFile["pages"][i]["bgColor"][2].get<uint8_t>(), 
+            jsonFile["pages"][i]["bgColor"][3].get<uint8_t>()
+        };
+
+        auto transitions = jsonFile["pages"][i]["slideTransitions"];
+        for (const auto& transition : transitions){
+            string transitionType = transition["type"].get<string>();
+
+            if(transitionType == "InterpolateBgColor"){
+                currentSlide.slideTransitions.push_back({
+                    SlideTransition_InterpolateBgColor{
+                        transition["speed"].get<float>()
+                    }
+                });
+            }
+            if(transitionType == "ScreenShake"){
+                currentSlide.slideTransitions.push_back({
+                    SlideTransition_ScreenShake{
+                        transition["intensity"].get<float>(),
+                        transition["duration"].get<float>(),
+                        transition["frequency"].get<int>()
+                    }
+                });
+            }
+        }
+        auto elements = jsonFile["pages"][i]["elements"];
+        for (const auto& element : elements)
+        {
+            string elementType = element["type"].get<string>();
+
+            ElementBasics basics{
+                element["id"].get<int>(),
+                Vector2{element["x"].get<float>(), element["y"].get<float>()},
+                Size2D{element["width"].get<int>(), element["height"].get<int>()},
+                Color{
+                    element["color"][0].get<uint8_t>(), 
+                    element["color"][1].get<uint8_t>(), 
+                    element["color"][2].get<uint8_t>(), 
+                    element["color"][3].get<uint8_t>()
+                }
+            };
+            if(elementType == "rect"){
+                currentSlide.fileElements.push_back({
+                    RectElement{
+                        basics,
+                        0// this will eventually be the roundess of the corners
+                    }
+                });
+            }
+            if(elementType == "text"){
+                currentSlide.fileElements.push_back({
+                    TextElement{
+                        basics,
+                        element["content"].get<string>(),
+                        element["fontSrc"].get<string>(),
+                        element["fontSize"].get<int>()
+                    }
+                });
+            }
+            if(elementType == "image"){
+                currentSlide.fileElements.push_back({
+                    ImageElement{
+                        basics,
+                        element["imageSrc"].get<string>()
+                    }
+                });
+            }
+        }
+        slideshow.push_back(currentSlide);
+    }
 }
 
 void InitializeUIButtons(vector<UIElement> &UIElements){

@@ -39,6 +39,8 @@
                     "content":"Apple",
                     "x":960,
                     "y":300,
+                    "width":1,
+                    "height":1,
                     "fontSize":86,
                     "fontSrc" : "SlideshowFiles/Fonts/font2.ttf",
                     "color":[0, 255, 0]

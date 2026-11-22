@@ -265,7 +265,7 @@ struct RectElement{
 };
 
 struct TextElement{
-    ElementBasics basics;
+    ElementBasics basics; // the width and height of text are stretching, so 1 1 is original 2 1 is horizontal stretch etc.
     string content = "";
     string fontSrc = "";
     int fontSize = 10;
@@ -291,7 +291,7 @@ using SlideTransition = variant<SlideTransition_InterpolateBgColor, SlideTransit
 
 struct Slide{
     vector<FileElement> fileElements;
-    vector<SlideTransition> transitions;
+    vector<SlideTransition> slideTransitions;
     Color bgColor;
 };
 
