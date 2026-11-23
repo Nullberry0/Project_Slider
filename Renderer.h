@@ -15,7 +15,7 @@ using std::vector;
 
 using json = nlohmann::json;
 
-void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, RenderVars renderVars, unordered_map<string, unordered_map<int, TTF_Font*>> &fonts, unordered_map<string, SDL_Texture*> &images);
+void RenderFile(const vector<Slide> slideshow, int openPageIndex, SDL_Renderer* renderer, RenderVars renderVars, unordered_map<string, unordered_map<int, TTF_Font*>> &fonts, unordered_map<string, SDL_Texture*> &images);
 
 void RenderViewRect(SDL_Renderer* renderer, RenderVars renderVars, Color bgColor);
 

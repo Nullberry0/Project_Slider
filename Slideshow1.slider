@@ -85,7 +85,8 @@
                 {
                     "id" : 7,
                     "type": "image",
-                    "src" : "SlideshowFiles/Image.png",
+                    "color" : [255, 255, 255, 255],
+                    "imageSrc" : "SlideshowFiles/Image.png",
                     "x":960,
                     "y":700,
                     "width":500,

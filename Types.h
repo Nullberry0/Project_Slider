@@ -273,7 +273,7 @@ struct TextElement{
 
 struct ImageElement{
     ElementBasics basics;
-    string imagesSrc = "";
+    string imageSrc = "";
 };
 
 struct SlideTransition_InterpolateBgColor{

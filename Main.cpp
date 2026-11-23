@@ -239,7 +239,7 @@ int main() // Runs once on startup
 
         if(menuState == MenuState::Editing) RenderOutline(renderer, pageIndex, memoryJson, renderVars, selectedElementOffsets);
 
-        if(menuState == MenuState::Viewing || menuState == MenuState::Editing) RenderFile(memoryJson, pageIndex, renderer, renderVars, fonts, images);
+        if(menuState == MenuState::Viewing || menuState == MenuState::Editing) RenderFile(slideshow, pageIndex, renderer, renderVars, fonts, images);
         HandleMenu(renderer, renderVars, menuState, images, SDL_GetTicks());
         RenderUIButtons(renderer, renderVars, UIElements, fonts);
 
@@ -401,7 +401,7 @@ Size2D GetCanvasSize(const json memoryJson){
 void InitializeSlideshow(vector<Slide> &slideshow, json &jsonFile, int pageCount){
     slideshow = {};
 
-    for(int i = 0; i < pageCount - 1; i++){
+    for(int i = 0; i < pageCount ; i++){
         Slide currentSlide;
         currentSlide.bgColor = Color{
             jsonFile["pages"][i]["bgColor"][0].get<uint8_t>(), 
@@ -409,6 +409,7 @@ void InitializeSlideshow(vector<Slide> &slideshow, json &jsonFile, int pageCount
             jsonFile["pages"][i]["bgColor"][2].get<uint8_t>(), 
             255
         };
+        
 
         auto transitions = jsonFile["pages"][i]["slideTransitions"];
         for (const auto& transition : transitions){
@@ -457,6 +458,7 @@ void InitializeSlideshow(vector<Slide> &slideshow, json &jsonFile, int pageCount
                     }
                 });
             }
+
             if(elementType == "text"){
                 currentSlide.fileElements.push_back({
                     TextElement{
@@ -475,6 +477,7 @@ void InitializeSlideshow(vector<Slide> &slideshow, json &jsonFile, int pageCount
                     }
                 });
             }
+            cout << "here" << endl;
 
         }
 

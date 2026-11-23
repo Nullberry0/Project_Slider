@@ -26,59 +26,50 @@ using std::decay_t;
 using json = nlohmann::json;
 
 
-void RenderFile(const json jsonFile, int openPageIndex, SDL_Renderer* renderer, RenderVars renderVars, unordered_map<string, unordered_map<int, TTF_Font*>> &fonts, unordered_map<string, SDL_Texture*> &images){
+void RenderFile(const vector<Slide> slideshow, int openPageIndex, SDL_Renderer* renderer, RenderVars renderVars, unordered_map<string, unordered_map<int, TTF_Font*>> &fonts, unordered_map<string, SDL_Texture*> &images){
 
-    auto elements = jsonFile["pages"][openPageIndex]["elements"];
+    vector<FileElement> elements = slideshow[openPageIndex].fileElements;
 
-    for (const auto& element : elements)
+    for (const FileElement &fileElement : elements)
     {
+        visit([&](auto& element){
+            using type = decay_t<decltype(element)>;
 
-        string type = element["type"];
+            if constexpr (is_same_v<type, RectElement>)
+            {
+                Vector2 pos = element.basics.pos;
+                Size2D size = element.basics.size;
+                ConvertCanvasToScreen(size, pos, renderVars, true);       
 
-        Vector2 pos{element["x"].get<float>(), element["y"].get<float>()};
+                SDL_FRect rect = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
 
-        if(type == "rect")
-        {
-            Size2D size{element["width"].get<int>(), element["height"].get<int>()};
+                SDL_SetRenderDrawColor(renderer, element.basics.color.r, element.basics.color.g, element.basics.color.b, element.basics.color.a);
+                SDL_RenderFillRect(renderer, &rect);
 
-            ConvertCanvasToScreen(size, pos, renderVars, true);       
+            }
+            else if constexpr (is_same_v<type, TextElement>){
+                int fontSize = element.fontSize * renderVars.canvasScaleFactor;
 
-            auto c = element["color"];
-            Color color = {c[0].get<uint8_t>(), c[1].get<uint8_t>(), c[2].get<uint8_t>(), 255};
+                Vector2 pos = element.basics.pos;
+                Size2D size = {0, 0}; // this will be stretch later
 
-            SDL_FRect rect = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
+                ConvertCanvasToScreen(size, pos, renderVars, false);
 
-            SDL_SetRenderDrawColor(renderer, color[0], color[1], color[2], 255);
-            SDL_RenderFillRect(renderer, &rect);
+                RenderText(renderer, element.content, element.fontSrc, fontSize, fonts, element.basics.color, pos);
 
-        }
-        else if(type == "text"){
-            string content = element["content"].get<string>();
+            }
+            else if constexpr (is_same_v<type, ImageElement>){
+                SDL_Texture* imageTexture = GetImage(element.imageSrc, images, renderer);
 
-            auto c = element["color"];
-            Color color = {c[0].get<uint8_t>(), c[1].get<uint8_t>(), c[2].get<uint8_t>(), 255};
+                Vector2 pos = element.basics.pos;
+                Size2D size = element.basics.size;
+                ConvertCanvasToScreen(size, pos, renderVars, true);
 
-            int fontSize = static_cast<int>(element["fontSize"].get<float>() * renderVars.canvasScaleFactor);
+                SDL_FRect destination = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
 
-            Size2D size = {0, 0};
-
-            string fontSrc = element["fontSrc"].get<string>();
-
-            ConvertCanvasToScreen(size, pos, renderVars, false);
-
-            RenderText(renderer, content, fontSrc, fontSize, fonts, color, pos);
-
-        }
-        else if(type == "image"){
-            SDL_Texture* imageTexture = GetImage(element["src"].get<string>(), images, renderer);
-
-            Size2D size{element["width"].get<int>(), element["height"].get<int>()};
-            ConvertCanvasToScreen(size, pos, renderVars, true);
-
-            SDL_FRect destination = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
-
-            SDL_RenderTexture(renderer, imageTexture, nullptr, &destination);
-        }
+                SDL_RenderTexture(renderer, imageTexture, nullptr, &destination);
+            }
+        }, fileElement);
     }
 }
 
