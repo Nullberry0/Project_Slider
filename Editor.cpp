@@ -15,6 +15,10 @@ using std::cerr;
 using std::endl;
 using std::string;
 using std::unordered_map;
+using std::visit;
+using std::holds_alternative;
+using std::is_same_v;
+using std::decay_t;
 
 // A Struct declared in Editor.h
 
@@ -49,22 +53,34 @@ InputState RecordEditorInput(SDL_Event event){
     return answer;
 }
 
-void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, RenderVars renderVars, std::unordered_map<uint64_t, Vector2> &selectedElementOffsets, unordered_map<string, unordered_map<int, TTF_Font*>> &fonts){
+void UpdateEditor(vector<Slide> &slideshow, int currentPage, InputState input, RenderVars renderVars, 
+    unordered_map<uint64_t, Vector2> &selectedElementOffsets, unordered_map<string, unordered_map<int, TTF_Font*>> &fonts){
 
-    auto& elements = jsonFile["pages"][currentPage]["elements"];
+    auto& elements = slideshow[currentPage].fileElements;
 
-    for (size_t i = 0; i < elements.size(); i++)
+    for (auto& fileElement : elements)
     {
-        auto& element = elements[i];
+        visit([&](auto& element){
+            using type = decay_t<decltype(element)>;
 
-        if(element["type"] == "rect" || element["type"] == "image")
-        {
-            Size2D size{element["width"].get<int>(), element["height"].get<int>()};
+            Size2D size = element.basics.size;
 
-            Vector2 topLeftPos{element["x"].get<float>(), element["y"].get<float>()};
+            Vector2 topLeftPos = element.basics.pos; // not yet the top left
 
-            ConvertCanvasToScreen(size, topLeftPos, renderVars, true);
+            if constexpr (is_same_v<type, RectElement> || is_same_v<type, ImageElement>)
+            {
+                ConvertCanvasToScreen(size, topLeftPos, renderVars, true);
+            }
+            else if constexpr (is_same_v<type, TextElement>){
+                size = {0,0};
 
+                TTF_Font* font = GetFont(element.fontSrc, element.fontSize, fonts);
+
+                TTF_GetStringSize(font, element.content.c_str(), 0, &size.width, &size.height);
+
+                ConvertCanvasToScreen(size, topLeftPos, renderVars, false);
+
+            }
             if(IsPointInBox(topLeftPos, topLeftPos + size, input.mousePos)){
                 if(input.leftMouse == MouseState::Pressed){
                     Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + renderVars.appliedViewportOffset;
@@ -72,84 +88,24 @@ void UpdateEditor(nlohmann::json& jsonFile, int currentPage, InputState input, R
                     Vector2 canvasMousePos{ Map(input.mousePos.x - offset.x, 0, renderVars.viewportSize.width, 0, renderVars.canvasSize.width),
                         Map(input.mousePos.y - offset.y, 0, renderVars.viewportSize.height, 0, renderVars.canvasSize.height)};
 
-                    selectedElementOffsets[element["id"].get<int>()] = Vector2{element["x"].get<float>(), element["y"].get<float>()} - canvasMousePos;
+                    selectedElementOffsets[element.basics.id] = element.basics.pos - canvasMousePos;
 
                 }
             }   
             else{
                 if(input.leftMouse == MouseState::Pressed){
-                    selectedElementOffsets.erase(element["id"].get<int>());
+                    selectedElementOffsets.erase(element.basics.id);
                 }
             }
-
-            if(selectedElementOffsets.contains(element["id"].get<int>()) && input.leftMouse == MouseState::Holding) // change the elements position if it is being held
+            if(selectedElementOffsets.contains(element.basics.id) && input.leftMouse == MouseState::Holding) // change the elements position if it is being held
             {
                 Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + renderVars.appliedViewportOffset;
 
-                element["x"] = Map(input.mousePos.x - offset.x, 0, renderVars.viewportSize.width, 0, renderVars.canvasSize.width) + selectedElementOffsets[element["id"].get<int>()].x;
-                element["y"] = Map(input.mousePos.y - offset.y, 0, renderVars.viewportSize.height, 0, renderVars.canvasSize.height) + selectedElementOffsets[element["id"].get<int>()].y;
+                element.basics.pos.x = Map(input.mousePos.x - offset.x, 0, renderVars.viewportSize.width, 0, renderVars.canvasSize.width) + selectedElementOffsets[element.basics.id].x;
+                element.basics.pos.y = Map(input.mousePos.y - offset.y, 0, renderVars.viewportSize.height, 0, renderVars.canvasSize.height) + selectedElementOffsets[element.basics.id].y;
+
             }
-        }
-        else if(element["type"] == "text"){
-            Size2D size{0,0};
-
-            auto fontIt = fonts.find(element["fontSrc"].get<string>());
-
-            int fontSize = static_cast<int>(element["fontSize"].get<float>() * renderVars.canvasScaleFactor);
-
-            TTF_Font* font;
-
-            if (fontIt != fonts.end()) {
-                auto sizeIt = fontIt->second.find(fontSize);
-
-                if (sizeIt != fontIt->second.end()) { // if the font size exists
-                    font = sizeIt->second;
-                }
-                else{
-                    font = TTF_OpenFont(element["fontSrc"].get<string>().c_str(), fontSize);
-                    fonts[element["fontSrc"].get<string>().c_str()][fontSize] = font;
-                }
-            } 
-            else{
-                font = TTF_OpenFont(element["fontSrc"].get<string>().c_str(), fontSize);
-                fonts[element["fontSrc"].get<string>().c_str()][fontSize] = font;
-            }
-
-            if (!font) {
-                cerr << "Yeah the font wouldn't load in the Editor" << SDL_GetError() << endl;
-                continue;
-            }
-
-            TTF_GetStringSize(font, element["content"].get<string>().c_str(), 0, &size.width, &size.height);
-
-            Vector2 topLeftPos{element["x"].get<float>(), element["y"].get<float>()};
-
-            ConvertCanvasToScreen(size, topLeftPos, renderVars, false);
-
-            if(IsPointInBox(topLeftPos, topLeftPos + size, input.mousePos)){
-                if(input.leftMouse == MouseState::Pressed){
-                    Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + renderVars.appliedViewportOffset;
-
-                    Vector2 canvasMousePos{ Map(input.mousePos.x - offset.x, 0, renderVars.viewportSize.width, 0, renderVars.canvasSize.width),  
-                        Map(input.mousePos.y - offset.y, 0, renderVars.viewportSize.height, 0, renderVars.canvasSize.height)};
-                    
-                    selectedElementOffsets[element["id"].get<int>()] = Vector2{element["x"].get<float>(), element["y"].get<float>()} - canvasMousePos;
-                }
-            }
-            else{
-                if(input.leftMouse == MouseState::Pressed){
-                    selectedElementOffsets.erase(element["id"].get<int>());
-                }
-            }
-
-            if(selectedElementOffsets.contains(element["id"].get<int>()) && input.leftMouse == MouseState::Holding) // change the elements position if it is being held
-            {
-                Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + renderVars.appliedViewportOffset;
-
-                element["x"] = Map(input.mousePos.x - offset.x, 0, renderVars.viewportSize.width, 0, renderVars.canvasSize.width) + selectedElementOffsets[element["id"].get<int>()].x;
-                element["y"] = Map(input.mousePos.y - offset.y, 0, renderVars.viewportSize.height, 0, renderVars.canvasSize.height) + selectedElementOffsets[element["id"].get<int>()].y;
-            }     
-        }
+        }, fileElement);
     }
 
 }

@@ -259,13 +259,19 @@ struct ElementBasics{
     Color color; // add rotation later
 };
 
+struct ElementEditorState{
+    bool isSelected = false;
+};
+
 struct RectElement{
     ElementBasics basics;
+    ElementEditorState editorState;
     float roundness;
 };
 
 struct TextElement{
     ElementBasics basics; // the width and height of text are stretching, so 1 1 is original 2 1 is horizontal stretch etc.
+    ElementEditorState editorState;
     string content = "";
     string fontSrc = "";
     int fontSize = 10;
@@ -273,6 +279,7 @@ struct TextElement{
 
 struct ImageElement{
     ElementBasics basics;
+    ElementEditorState editorState;
     string imageSrc = "";
 };
 

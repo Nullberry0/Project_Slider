@@ -228,7 +228,7 @@ int main() // Runs once on startup
         
         UpdateRenderVars(renderVars, editingViewportOffset, menuState, additionalViewportOffset,editingViewportSizeModificationPx, root);
 
-        if(menuState == MenuState::Editing) UpdateEditor(memoryJson, pageIndex, editorInput, renderVars, selectedElementOffsets, fonts);
+        if(menuState == MenuState::Editing) UpdateEditor(slideshow, pageIndex, editorInput, renderVars, selectedElementOffsets, fonts);
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
@@ -449,11 +449,15 @@ void InitializeSlideshow(vector<Slide> &slideshow, json &jsonFile, int pageCount
                     element["color"][3].get<uint8_t>()
                 }
             };
+            ElementEditorState editorState{
+                false
+            };
 
             if(elementType == "rect"){
                 currentSlide.fileElements.push_back({
                     RectElement{
                         basics,
+                        editorState,
                         0// this will eventually be the roundess of the corners
                     }
                 });
@@ -463,6 +467,7 @@ void InitializeSlideshow(vector<Slide> &slideshow, json &jsonFile, int pageCount
                 currentSlide.fileElements.push_back({
                     TextElement{
                         basics,
+                        editorState,
                         element["content"].get<string>(),
                         element["fontSrc"].get<string>(),
                         element["fontSize"].get<int>()
@@ -473,11 +478,11 @@ void InitializeSlideshow(vector<Slide> &slideshow, json &jsonFile, int pageCount
                 currentSlide.fileElements.push_back({
                     ImageElement{
                         basics,
+                        editorState,
                         element["imageSrc"].get<string>()
                     }
                 });
             }
-            cout << "here" << endl;
 
         }
 
