@@ -261,6 +261,7 @@ struct ElementBasics{
 
 struct ElementEditorState{
     bool isSelected = false;
+    Vector2 selectedOffset = {};
 };
 
 struct RectElement{

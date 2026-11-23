@@ -78,7 +78,6 @@ std::mt19937 generator(std::random_device{}()); // Initialize random seed gen
         canvasScaleFactor
     };
 
-    unordered_map<uint64_t, Vector2> selectedElementOffsets{}; // the offset between the middle of the object and the cursor when it is first selected
     unordered_map<string, unordered_map<int, TTF_Font*>> fonts; // font are cashed so that you don't have to remake the font every time you want to use it. This is better for preformance
     unordered_map<string, SDL_Texture*> images; 
 
@@ -228,7 +227,7 @@ int main() // Runs once on startup
         
         UpdateRenderVars(renderVars, editingViewportOffset, menuState, additionalViewportOffset,editingViewportSizeModificationPx, root);
 
-        if(menuState == MenuState::Editing) UpdateEditor(slideshow, pageIndex, editorInput, renderVars, selectedElementOffsets, fonts);
+        if(menuState == MenuState::Editing) UpdateEditor(slideshow, pageIndex, editorInput, renderVars, fonts);
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
@@ -237,7 +236,7 @@ int main() // Runs once on startup
 
         if(menuState == MenuState::Viewing || menuState == MenuState::Editing) RenderViewRect(renderer, renderVars, currentBgColor);
 
-        if(menuState == MenuState::Editing) RenderOutline(renderer, pageIndex, memoryJson, renderVars, selectedElementOffsets);
+        if(menuState == MenuState::Editing) RenderOutline(renderer, pageIndex, slideshow, renderVars);
 
         if(menuState == MenuState::Viewing || menuState == MenuState::Editing) RenderFile(slideshow, pageIndex, renderer, renderVars, fonts, images);
         HandleMenu(renderer, renderVars, menuState, images, SDL_GetTicks());
@@ -450,7 +449,8 @@ void InitializeSlideshow(vector<Slide> &slideshow, json &jsonFile, int pageCount
                 }
             };
             ElementEditorState editorState{
-                false
+                false,
+                Vector2{0, 0}
             };
 
             if(elementType == "rect"){

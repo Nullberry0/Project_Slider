@@ -24,7 +24,7 @@ float Min(float value1, float value2);
 
 int GetPageCount(const nlohmann::json jsonFile);
 
-void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, RenderVars renderVars, std::unordered_map<uint64_t, Vector2> selectedElementOffsets);
+void RenderOutline(SDL_Renderer* renderer, int openPageIndex, vector<Slide> slideshow, RenderVars renderVars);
 void ConvertCanvasToScreen(Size2D &size, Vector2 &pos, const RenderVars renderVars, const bool changeSize);
 
 SDL_Texture* GetImage(string src, unordered_map<string, SDL_Texture*> &images, SDL_Renderer* renderer);

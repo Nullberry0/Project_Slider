@@ -53,8 +53,7 @@ InputState RecordEditorInput(SDL_Event event){
     return answer;
 }
 
-void UpdateEditor(vector<Slide> &slideshow, int currentPage, InputState input, RenderVars renderVars, 
-    unordered_map<uint64_t, Vector2> &selectedElementOffsets, unordered_map<string, unordered_map<int, TTF_Font*>> &fonts){
+void UpdateEditor(vector<Slide> &slideshow, int currentPage, InputState input, RenderVars renderVars, unordered_map<string, unordered_map<int, TTF_Font*>> &fonts){
 
     auto& elements = slideshow[currentPage].fileElements;
 
@@ -88,21 +87,22 @@ void UpdateEditor(vector<Slide> &slideshow, int currentPage, InputState input, R
                     Vector2 canvasMousePos{ Map(input.mousePos.x - offset.x, 0, renderVars.viewportSize.width, 0, renderVars.canvasSize.width),
                         Map(input.mousePos.y - offset.y, 0, renderVars.viewportSize.height, 0, renderVars.canvasSize.height)};
 
-                    selectedElementOffsets[element.basics.id] = element.basics.pos - canvasMousePos;
+                    element.editorState.selectedOffset = element.basics.pos - canvasMousePos;
+                    element.editorState.isSelected = true;
 
                 }
             }   
             else{
                 if(input.leftMouse == MouseState::Pressed){
-                    selectedElementOffsets.erase(element.basics.id);
+                    element.editorState.isSelected = false;
                 }
             }
-            if(selectedElementOffsets.contains(element.basics.id) && input.leftMouse == MouseState::Holding) // change the elements position if it is being held
+            if(element.editorState.isSelected && input.leftMouse == MouseState::Holding) // change the elements position if it is being held
             {
                 Vector2 offset = (renderVars.windowSize - renderVars.viewportSize) / 2.0f + renderVars.appliedViewportOffset;
 
-                element.basics.pos.x = Map(input.mousePos.x - offset.x, 0, renderVars.viewportSize.width, 0, renderVars.canvasSize.width) + selectedElementOffsets[element.basics.id].x;
-                element.basics.pos.y = Map(input.mousePos.y - offset.y, 0, renderVars.viewportSize.height, 0, renderVars.canvasSize.height) + selectedElementOffsets[element.basics.id].y;
+                element.basics.pos.x = Map(input.mousePos.x - offset.x, 0, renderVars.viewportSize.width, 0, renderVars.canvasSize.width) + element.editorState.selectedOffset.x;
+                element.basics.pos.y = Map(input.mousePos.y - offset.y, 0, renderVars.viewportSize.height, 0, renderVars.canvasSize.height) + element.editorState.selectedOffset.y;
 
             }
         }, fileElement);

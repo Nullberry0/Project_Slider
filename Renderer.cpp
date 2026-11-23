@@ -85,29 +85,31 @@ void RenderViewRect(SDL_Renderer* renderer, RenderVars renderVars, Color bgColor
     SDL_RenderRect(renderer, &rect);
 }
 
-void RenderOutline(SDL_Renderer* renderer, int openPageIndex, json jsonFile, RenderVars renderVars, unordered_map<uint64_t, Vector2> selectedElementOffsets){
+void RenderOutline(SDL_Renderer* renderer, int openPageIndex, vector<Slide> slideshow, RenderVars renderVars){
 
     SDL_SetRenderDrawColor(renderer, 23, 82, 112, 255);
 
-    auto elements = jsonFile["pages"][openPageIndex]["elements"];
+    auto elements = slideshow[openPageIndex].fileElements;
 
-    for( const auto &element : elements){
-        if(element["type"] == "rect"){
-            int id = element["id"].get<int>();
-            if(selectedElementOffsets.contains(id)){
+    for( const auto &fileElement : elements){
+        visit([&](auto element){
+            using type = decay_t<decltype(element)>;
 
-                Vector2 pos{element["x"].get<float>(), element["y"].get<float>()};
+            if constexpr (is_same_v<type, RectElement>){
+                if(element.editorState.isSelected){
 
-                Size2D size{element["width"].get<int>(), element["height"].get<int>()};
-                size += renderVars.windowSize.width / 50; //outline thickness
+                    Vector2 pos = element.basics.pos;
+                    Size2D size = element.basics.size;
+                    size += 30; //outline thickness
 
-                ConvertCanvasToScreen(size, pos, renderVars, true);
+                    ConvertCanvasToScreen(size, pos, renderVars, true);
 
-                SDL_FRect rect = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
+                    SDL_FRect rect = {pos.x, pos.y, static_cast<float>(size.width), static_cast<float>(size.height)};
 
-                SDL_RenderFillRect(renderer, &rect);
+                    SDL_RenderFillRect(renderer, &rect);
+                }
             }
-        }
+        }, fileElement);
     }
 }
 
