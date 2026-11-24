@@ -56,7 +56,7 @@
                     "speed" : 2
                 },
                 {
-                    "type" : "Shake",
+                    "type" : "ScreenShake",
                     "intensity" : 5,
                     "duration" : 0.3,
                     "frequency" : 80

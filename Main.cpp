@@ -26,6 +26,10 @@ using std::sin;
 using std::cos;
 using std::variant;
 using std::unordered_map;
+using std::visit;
+using std::holds_alternative;
+using std::is_same_v;
+using std::decay_t;
 
 using json = nlohmann::json;
 
@@ -37,10 +41,10 @@ bool StartSDLTTF();
 bool InitializeRoot(SDL_Window*& root, Size2D& windowSize);
 bool InitializeRenderer(SDL_Renderer*& renderer, SDL_Window* window);
 void InitializeUIButtons(vector<UIElement> &UIElements);
-void InitializeSlideshow(vector<Slide> &slideshow, json &jsonFile, int pageCount);
+void InitializeSlideshow(vector<Slide> &slideshow, json jsonFile, int pageCount);
 
-void StartTransitions(const json jsonFileCurrentPage, Color &currentBgColor, Color &targetBgColor, float &bgColorInterpolateSpeed, float &screenShakeTimer, Vector2 &additionalViewportOffset, float &screenShakeDuration, 
-   Vector2 &originalScreenShakeIntensity, float &screenShakeFrequency);
+void StartTransitions(const vector<Slide> slideshow, Color &currentBgColor, Color &targetBgColor, float &bgColorInterpolateSpeed, float &screenShakeTimer, Vector2 &additionalViewportOffset, float &screenShakeDuration, 
+   Vector2 &originalScreenShakeIntensity, float &screenShakeFrequency, int pageIndex);
 
 void UpdateRenderVars(RenderVars &renderVars, const Vector2 editingViewportOffset, const MenuState menuState, Vector2 &additionalViewportOffset, float editingViewportSizeModificationPx ,SDL_Window* root);
 
@@ -53,10 +57,10 @@ std::mt19937 generator(std::random_device{}()); // Initialize random seed gen
     // FILE DECLARATION
 
     string openFile = "Slideshow1.slider";
-
+    
     ifstream file(openFile);
+    json memoryJson = json::parse(file);
 
-    json memoryJson = json::parse(file); // A copy of the json file which can be modified without changing the underlying file
 
     // VARIABLE DECLARATION
 
@@ -137,8 +141,8 @@ int main() // Runs once on startup
     bool running = true;
     SDL_Event event;
 
-    StartTransitions(memoryJson["pages"][pageIndex], currentBgColor, targetBgColor, bgColorInterpolateSpeed, screenShakeTimer, additionalViewportOffset, 
-            screenShakeDuration, originalScreenShakeIntensity, screenShakeFrequency);  
+    StartTransitions(slideshow, currentBgColor, targetBgColor, bgColorInterpolateSpeed, screenShakeTimer, additionalViewportOffset, 
+            screenShakeDuration, originalScreenShakeIntensity, screenShakeFrequency, pageIndex);  
 
     while (running)
     {
@@ -191,10 +195,6 @@ int main() // Runs once on startup
             }
         }
 
-        // for(const auto &[id, offset] : selectedElementOffsets){
-        //     cout << id << endl;
-        // }
-
         if(bgColorInterpolateSpeed > -0.5f){ // the interpolate speed is -1 when target == current
             int sameColorsCounter = 0;
             for(int i = 0; i < 3; i++){ // Cycle through the R G and B values of current color
@@ -210,8 +210,8 @@ int main() // Runs once on startup
             } 
         }
 
-        if(lastPageIndex != pageIndex) StartTransitions(memoryJson["pages"][pageIndex], currentBgColor, targetBgColor, bgColorInterpolateSpeed, screenShakeTimer, additionalViewportOffset, 
-            screenShakeDuration, originalScreenShakeIntensity, screenShakeFrequency);
+        if(lastPageIndex != pageIndex) StartTransitions(slideshow, currentBgColor, targetBgColor, bgColorInterpolateSpeed, screenShakeTimer, additionalViewportOffset, 
+            screenShakeDuration, originalScreenShakeIntensity, screenShakeFrequency, pageIndex);  
 
         if(screenShakeTimer > 0){
             screenShakeTimer -= deltaTime;
@@ -266,52 +266,53 @@ int main() // Runs once on startup
     return 0;
 }
 
-void StartTransitions(const json jsonFileCurrentPage, Color &currentBgColor, Color &targetBgColor, float &bgColorInterpolateSpeed, float &screenShakeTimer, Vector2 &additionalViewportOffset, float &screenShakeDuration, 
-   Vector2 &originalScreenShakeIntensity, float &screenShakeFrequency){
+void StartTransitions(const vector<Slide> slideshow, Color &currentBgColor, Color &targetBgColor, float &bgColorInterpolateSpeed, float &screenShakeTimer, Vector2 &additionalViewportOffset, float &screenShakeDuration, 
+   Vector2 &originalScreenShakeIntensity, float &screenShakeFrequency, int pageIndex){
 
-    auto transitions = jsonFileCurrentPage["slideTransitions"];
+    vector<SlideTransition> slideTransitions = slideshow[pageIndex].slideTransitions;
 
-    if(transitions.size() == 0){
-        auto color = jsonFileCurrentPage["bgColor"];
-        currentBgColor = {color[0].get<uint8_t>(), color[1].get<uint8_t>(), color[2].get<uint8_t>(), 255};
+    if(slideTransitions.size() == 0){
+        currentBgColor = slideshow[pageIndex].bgColor;
         targetBgColor = currentBgColor;
         bgColorInterpolateSpeed = -1.0f;
     }
 
     bool interpolateColorFlag = false;
 
-    for (const auto& transition : transitions)
+    for (const auto& slideTransition : slideTransitions)
     {
-        string type = transition["type"];
+        visit([&](auto transition){
+            using type = decay_t<decltype(transition)>;
 
-        if (type == "InterpolateBgColor")
-        {
-            interpolateColorFlag = true;
-            auto color = jsonFileCurrentPage["bgColor"];
-            targetBgColor = {color[0].get<uint8_t>(), color[1].get<uint8_t>(), color[2].get<uint8_t>(), 255};
-            bgColorInterpolateSpeed = transition["speed"];
-        }
-
-        if (type == "Shake"){
-            screenShakeFrequency = transition["frequency"].get<float>() * 6.28318; // 2pi, to make it per second
-
-            screenShakeTimer = transition["duration"].get<float>();
-            screenShakeDuration = screenShakeTimer;
-
-            additionalViewportOffset.x = std::uniform_real_distribution<float>(-transition["intensity"].get<float>() /100, transition["intensity"].get<float>() / 100)(generator);
-            additionalViewportOffset.y = (transition["intensity"].get<float>()/100) - abs(additionalViewportOffset.x);
- 
-            if(std::bernoulli_distribution(0.5)(generator) == true){
-                 additionalViewportOffset.y *= -1;
+            if constexpr (is_same_v<type, SlideTransition_InterpolateBgColor>)
+            {
+                interpolateColorFlag = true;
+                targetBgColor = slideshow[pageIndex].bgColor;
+                bgColorInterpolateSpeed = transition.speed;
             }
 
-            originalScreenShakeIntensity = additionalViewportOffset;
-        }
+            if constexpr (is_same_v<type, SlideTransition_ScreenShake>){
+                screenShakeFrequency = transition.frequency * 6.28318; // 2pi, to make it per second
+
+                screenShakeTimer = transition.duration;
+                screenShakeDuration = screenShakeTimer;
+
+                additionalViewportOffset.x = std::uniform_real_distribution<float>(-transition.intensity /100, transition.intensity  / 100)(generator); // random number gen
+                additionalViewportOffset.y = (transition.intensity/100) - abs(additionalViewportOffset.x);
+    
+                if(std::bernoulli_distribution(0.5)(generator) == true){
+                    additionalViewportOffset.y *= -1;
+                }
+
+                originalScreenShakeIntensity = additionalViewportOffset;
+            }
+        }, slideTransition);
+        
 
     }
+    
     if(!interpolateColorFlag){
-        auto color = jsonFileCurrentPage["bgColor"];
-        currentBgColor = {color[0].get<uint8_t>(), color[1].get<uint8_t>(), color[2].get<uint8_t>(), 255};
+        currentBgColor = slideshow[pageIndex].bgColor;
         targetBgColor = currentBgColor;
         bgColorInterpolateSpeed = -1.0f;
     }
@@ -397,7 +398,7 @@ Size2D GetCanvasSize(const json memoryJson){
     return Size2D{canvas["width"], canvas["height"]};
 }
 
-void InitializeSlideshow(vector<Slide> &slideshow, json &jsonFile, int pageCount){
+void InitializeSlideshow(vector<Slide> &slideshow, json jsonFile, int pageCount){
     slideshow = {};
 
     for(int i = 0; i < pageCount ; i++){
@@ -431,6 +432,7 @@ void InitializeSlideshow(vector<Slide> &slideshow, json &jsonFile, int pageCount
                     }
                 });
             }
+
         }
         auto elements = jsonFile["pages"][i]["elements"];
         for (const auto& element : elements)
