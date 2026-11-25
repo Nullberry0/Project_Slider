@@ -15,10 +15,10 @@ using std::decay_t;
 using std::cout;
 using std::endl;
 
-void HandleUIElements(RenderVars renderVars, vector<UIElement> &UIElements, InputState inputState, MenuState &menuState){
+void HandleUIElements(RenderVars renderVars, vector<UIElement> &UIElements, InputState inputState, ButtonModifiableValues &vars){
     for(auto &element: UIElements){
         visit([&](auto &ui) {
-            if(ButtonVisibility(element, menuState) == true){
+            if(ButtonVisibility(element, vars.menuState) == true){
 
                 ui.properties.isVisible = true;
                 Vector2 pos;
@@ -46,7 +46,25 @@ void HandleUIElements(RenderVars renderVars, vector<UIElement> &UIElements, Inpu
                                 }
                                 else option.isBeingPressed = false;
                                 if(inputState.leftMouse == MouseState::Released){
-                                    // insert rect here;
+                                    if(option.func == ButtonFunc::InsertRect){
+                                        vars.slideshow[vars.pageIndex].fileElements.push_back({
+                                            RectElement{
+                                                ElementBasics{
+                                                    10, // temporary, will need to be real ID
+                                                    inputState.mousePos,
+                                                    Size2D{
+                                                        200, 
+                                                        200
+                                                    },
+                                                    Color{
+                                                        255, 255, 255, 255
+                                                    }
+                                                },
+                                                ElementEditorState{},
+                                                0
+                                            }
+                                        });
+                                    }
                                 }
                             }
                             else{
@@ -73,7 +91,7 @@ void HandleUIElements(RenderVars renderVars, vector<UIElement> &UIElements, Inpu
                     if(inputState.leftMouse == MouseState::Released){
                         if constexpr (is_same_v<decay_t<decltype(ui)>, Button>) { // only compile if, decay_t removes the & so button& becomes button
                             if(ui.func == ButtonFunc::StartEditing){
-                                menuState = MenuState::Editing;
+                                vars.menuState = MenuState::Editing;
                             }
                         }
                         else if constexpr (is_same_v<decay_t<decltype(ui)>, Dropdown>){

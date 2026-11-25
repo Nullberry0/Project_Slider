@@ -40,6 +40,12 @@ enum class UIAnchor{
     BottomRight
 };
 
+struct ButtonModifiableValues{
+    MenuState &menuState;
+    vector<Slide> &slideshow;
+    int pageIndex = 0;
+};
+
 struct UIProperties {
     UIAnchor anchor;
     Vector2 pixelOffset;
@@ -97,6 +103,6 @@ struct Dropdown {
 
 using UIElement = variant<Button, Dropdown>; // so that different types of UI can still be in the same list
 
-void HandleUIElements(RenderVars renderVars, vector<UIElement> &UIElements, InputState inputState, MenuState &menuState);
+void HandleUIElements(RenderVars renderVars, vector<UIElement> &UIElements, InputState inputState, ButtonModifiableValues &vars);
 
 bool ButtonVisibility(UIElement element, MenuState menuState);

@@ -232,7 +232,13 @@ int main() // Runs once on startup
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        HandleUIElements(renderVars, UIElements, editorInput, menuState);
+        ButtonModifiableValues vars{
+            menuState,
+            slideshow,
+            pageIndex
+        };
+
+        HandleUIElements(renderVars, UIElements, editorInput, vars);
 
         if(menuState == MenuState::Viewing || menuState == MenuState::Editing) RenderViewRect(renderer, renderVars, currentBgColor);
 
